@@ -8,6 +8,13 @@ module Blueprint
   require 'blueprint/config'
   require 'blueprint/model'
 
+  require 'parslet'
+
+  config do |c|
+    c.default_adapter = :base
+    c.persisted_attribute_options = [:limit, :precision, :scale, :polymorphic, :null, :default]
+  end
+
   if defined?(ActiveRecord)
     require 'blueprint/has_blueprint'
     ActiveSupport.on_load :active_record do
@@ -16,13 +23,19 @@ module Blueprint
   end
 
   require 'blueprint/adapters/active_record'
+  require 'blueprint/adapters/test'
 
   ADAPTERS = {
       active_record:  Adapters::ActiveRecord,
+      test:           Adapters::Test,
       base:           Base
   }
 
   class << self
+    def config
+      Config
+    end
+
     def new(model, adapter: nil, **options)
       if adapter
         ADAPTERS[adapter].new(model, **options)

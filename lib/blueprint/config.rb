@@ -5,8 +5,7 @@ module Blueprint
 
   module Config
     class << self
-      attr_accessor :default_adapter
+      attr_accessor :default_adapter, :persisted_attribute_options
     end
-    self.default_adapter = :active_record
   end
 end
