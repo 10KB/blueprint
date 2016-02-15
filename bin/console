@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "blueprint"
+
+# You can add fixtures and/or initialization code here to make experimenting
+# with your gem easier. You can also use a different console, if you like.
+
+# (If you use this, don't forget to add pry to your Gemfile!)
+# require "pry"
+# Pry.start
+
+@attributes = Blueprint::Attributes.new
+
+@attributes.add name: 'name',           type: :string,  default: 'John'
+@attributes.add name: 'age',            type: :integer
+@attributes.add name: 'height',         type: :integer, default: 180
+@attributes.add name: 'date_of_birth',  type: :date
+
+require "irb"
+IRB.start
