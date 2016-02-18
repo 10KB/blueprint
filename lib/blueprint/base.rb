@@ -13,6 +13,11 @@ module Blueprint
       self.attributes = Attributes.new
     end
 
+    def explanation(index)
+      return unless changes?
+      Terminal::Table.new(Explanation.apply(self, index))
+    end
+
     def changes_tree
       changes = persisted_attributes.diff(attributes, type: :persisted)
 
@@ -23,6 +28,13 @@ module Blueprint
       end
 
       {table_name: table_name, table_exists: table_exists?, attributes: attributes}
+    end
+
+    def changes?
+      changes = persisted_attributes.diff(attributes, type: :persisted)
+      changes.any? do |_, attributes|
+        attributes.to_a.size > 0
+      end
     end
 
     def table_name

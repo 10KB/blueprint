@@ -9,12 +9,26 @@ module Blueprint
           model < ::ActiveRecord::Base
         end
 
-        def generate_migration
-          File.open()
+        def underscore(name)
+          name = name.gsub(/ /, '_')
+          name.gsub(/([a-z])([A-Z])/) { "#{$1}_#{$2.downcase}" }.downcase
+        end
+
+        def camelize(name)
+          name = underscore(name)
+          name = name.gsub(/^([a-z])/) { $1.upcase }
+          name.gsub(/_([a-zA-Z])/) { $1.upcase }
+        end
+
+        def generate_migration(name, trees)
+          filename = "#{Time.now.strftime('%Y%m%d%H%M%S')}_#{underscore(name)}.rb"
+          File.open(File.join(Blueprint.config.migration_path, filename), 'w') do |f|
+            f.write migration(name, trees)
+          end
         end
 
         def migration(name, trees)
-          "class #{name} < ActiveRecord::Migration\n" + transform(trees) + "  end"
+          "class #{camelize(name)} < ActiveRecord::Migration\n  def change\n" + transform(trees) + "  end\nend"
         end
 
         private
@@ -24,14 +38,60 @@ module Blueprint
         end
       end
 
+      def initialize(model, id: true, timestamps: true, **options)
+        super(model)
+
+        @has_id, @has_timestamps = id, timestamps
+        @attributes.add(name: :id, type: :integer, null: false) if id
+        @attributes.add(name: :created_at, type: :datetime)     if timestamps
+        @attributes.add(name: :updated_at, type: :datetime)     if timestamps
+      end
+
+      def changes_tree
+        changes_tree = super
+
+        if !changes_tree[:table_exists]
+          changes_tree[:has_id] = @has_id
+          changes_tree[:attributes].reject! { |attribute| attribute[:name] == :id }
+        end
+
+        added_created_at = changes_tree[:attributes].select { |attribute| attribute[:name] == :created_at && attribute[:kind] == :added }
+        added_updated_at = changes_tree[:attributes].select { |attribute| attribute[:name] == :updated_at && attribute[:kind] == :added }
+
+        if added_created_at.size == 1 && added_updated_at.size == 1
+          changes_tree[:attributes] -= [*added_created_at, *added_updated_at]
+          changes_tree[:attributes] += [{type: :timestamps, kind: :added}]
+        end
+
+        changes_tree
+      end
+
       def persisted_attributes
-        ::Blueprint::Attributes.new
+        attributes = Blueprint::Attributes.new
+        return attributes unless table_exists?
+        model.columns.map do |column|
+          attributes.add options_from_column(column)
+        end
+        attributes.to_persisted
+      end
+
+      def migration(name)
+        self.class.migration(name, [changes_tree])
+      end
+
+      def options_from_column(column)
+        [:name, :type, *Blueprint.config.persisted_attribute_options.keys].map do |option|
+          next unless column.respond_to?(option)
+          value = column.send(option)
+          value = column.type_cast_from_database(value) if option == :default
+          next if value == Blueprint.config.persisted_attribute_options[option]
+          {option => value}
+        end.compact.inject(&:merge)
       end
 
       def table_exists?
-        return false
-        ActiveRecord::Base.connection.schema_cache.clear!
-        ActiveRecord::Base.connection.table_exists?(table_name)
+        ::ActiveRecord::Base.connection.schema_cache.clear!
+        ::ActiveRecord::Base.connection.table_exists?(table_name)
       end
     end
   end

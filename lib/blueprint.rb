@@ -2,17 +2,31 @@ require "blueprint/version"
 
 module Blueprint
   require 'active_support/concern' unless defined?(ActiveSupport)
+  require 'active_support/inflections'
+
+  require 'parslet'
+  require 'terminal-table'
+  require 'highline'
 
   require 'blueprint/attributes'
   require 'blueprint/base'
   require 'blueprint/config'
+  require 'blueprint/explanation'
   require 'blueprint/model'
-
-  require 'parslet'
+  require 'blueprint/migrator'
 
   config do |c|
-    c.default_adapter = :base
-    c.persisted_attribute_options = [:limit, :precision, :scale, :polymorphic, :null, :default]
+    c.default_adapter             = :base
+    c.eager_load                  = false
+    c.eager_load_paths            = []
+    c.persisted_attribute_options = {
+        limit: nil,
+        precision: nil,
+        scale: nil,
+        polymorphic: false,
+        null: true,
+        default: nil
+    }
   end
 
   if defined?(ActiveRecord)
@@ -32,10 +46,6 @@ module Blueprint
   }
 
   class << self
-    def config
-      Config
-    end
-
     def new(model, adapter: nil, **options)
       if adapter
         ADAPTERS[adapter].new(model, **options)
@@ -46,6 +56,27 @@ module Blueprint
 
         adapter[-1].new(model, **options)
       end
+    end
+
+    @@models = []
+    def models=(models)
+      @@models = models
+    end
+
+    def models
+      @@models
+    end
+
+    def <<(model)
+      @@models << model
+    end
+
+    def blueprints
+      models.map(&:blueprint)
+    end
+
+    def changed_blueprints
+      blueprints.select(&:changes?)
     end
   end
 end

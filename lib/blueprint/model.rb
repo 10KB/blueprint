@@ -11,5 +11,10 @@ module Blueprint
       end
       alias_method :schema, :blueprint
     end
+
+    def self.included(model)
+      Blueprint.models << model
+      super
+    end
   end
 end

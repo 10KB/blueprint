@@ -1,7 +1,8 @@
 module Blueprint
   class Attribute
-    def initialize(**options)
-      @options = options
+    def initialize(persisted: nil, **options)
+      @options   = options
+      @persisted = persisted
     end
 
     def ==(attribute)
@@ -16,13 +17,21 @@ module Blueprint
       end
     end
 
+    def persisted_options
+      @options.select { |key, _| Blueprint.config.persisted_attribute_options.keys.include?(key) }
+    end
+
     def to_h
       @options
     end
 
+    def merge(options)
+      self.class.new(persisted: @persisted, **@options, **options)
+    end
+
     def to_persisted(**config)
-      persisted_options = @options[:options] || @options.select { |key, _| Blueprint.config.persisted_attribute_options.include?(key) }
-      self.class.new(name: @options[:name], type: @options[:type], options: persisted_options, **config)
+      return merge(config) if @persisted
+      self.class.new(persisted: true, name: @options[:name], type: @options[:type], options: persisted_options, **config)
     end
 
     def [](name)
@@ -78,7 +87,7 @@ module Blueprint
       # TODO: cleanup
       added   = diff.slice(*(diff.keys - keys))
       changed = diff.to_diff_a(type) - to_diff_a(type) - added.to_diff_a(type)
-      changed = Attributes.new(Hash[changed].map { |key, options| {key => Attribute.new(options)} }.inject(&:merge))
+      changed = Attributes.new(Hash[changed].map { |key, options| {key => Attribute.new(persisted:true, **options)} }.inject(&:merge))
       removed = slice(*(keys - diff.keys))
 
       {added: added, changed: changed, removed: removed}
@@ -106,6 +115,13 @@ module Blueprint
 
     def to_a
       @attributes.values
+    end
+
+    def to_persisted
+      @attributes.each do |name, attribute|
+        @attributes[name] = attribute.to_persisted
+      end
+      self
     end
 
     def to_diff_a(type)
