@@ -44,19 +44,19 @@ module Blueprint
           end
 
           added_attribute do
-            if table_exists
-              table[:rows] << ['added', name, type, nil, options.to_s, nil]
-            else
-              table[:rows] << [name, type, options.to_s]
-            end
+            table[:rows] << if table_exists
+                              ['added', name, type, nil, options.to_s, nil]
+                            else
+                              [name, type, options.to_s]
+                            end
           end
 
           added_timestamps do
-            if table_exists
-              table[:rows] << ['added', 'timestamps', nil, nil, nil, nil]
-            else
-              table[:rows] << ['timestamps', nil, nil]
-            end
+            table[:rows] << if table_exists
+                              ['added', 'timestamps', nil, nil, nil, nil]
+                            else
+                              ['timestamps', nil, nil]
+                            end
           end
 
           changed_attribute do
