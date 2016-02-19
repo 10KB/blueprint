@@ -5,8 +5,8 @@ module Blueprint
       @persisted = persisted
     end
 
-    def ==(attribute)
-      to_h == attribute.to_h
+    def ==(other)
+      to_h == other.to_h
     end
 
     def has?(*keys, **conditions)
@@ -87,10 +87,10 @@ module Blueprint
       # TODO: cleanup
       added   = diff.slice(*(diff.keys - keys))
       changed = diff.to_diff_a(type) - to_diff_a(type) - added.to_diff_a(type)
-      changed = Attributes.new(Hash[changed].map { |key, options| {key => Attribute.new(persisted:true, **options)} }.inject(&:merge))
+      changed = Attributes.new(Hash[changed].map { |key, options| { key => Attribute.new(persisted: true, **options) } }.inject(&:merge))
       removed = slice(*(keys - diff.keys))
 
-      {added: added, changed: changed, removed: removed}
+      { added: added, changed: changed, removed: removed }
     end
 
     def where(*keys, **conditions)

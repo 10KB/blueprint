@@ -2,7 +2,7 @@ module Blueprint
   module Explanation
     class << self
       def apply(blueprint, index)
-        @table     = {title: "#{index}. ", rows: [], style: {width: 100}}
+        @table     = { title: "#{index}. ", rows: [], style: { width: 100 } }
         @blueprint = blueprint
         transformer.new.apply(blueprint.changes_tree)
         @table
@@ -29,12 +29,12 @@ module Blueprint
 
         Class.new(Blueprint::Transform) do
           create_table do
-            table[:headings]  = ['name', 'type', 'options']
+            table[:headings]  = %w(name 'type 'options)
             table[:title]    += "Create a new table #{table_name}"
           end
 
           create_table_without_id do
-            table[:headings]  = ['name', 'type', 'options']
+            table[:headings]  = %w(name 'type 'options')
             table[:title]    += "Create a new table #{table_name} (without id)"
           end
 

@@ -21,12 +21,12 @@ module Blueprint
     c.eager_load                  = false
     c.eager_load_paths            = []
     c.persisted_attribute_options = {
-        limit: nil,
-        precision: nil,
-        scale: nil,
-        polymorphic: false,
-        null: true,
-        default: nil
+      limit: nil,
+      precision: nil,
+      scale: nil,
+      polymorphic: false,
+      null: true,
+      default: nil
     }
   end
 
@@ -41,10 +41,10 @@ module Blueprint
   require 'blueprint/adapters/test'
 
   ADAPTERS = {
-      active_record:  Adapters::ActiveRecord,
-      test:           Adapters::Test,
-      base:           Base
-  }
+    active_record:  Adapters::ActiveRecord,
+    test:           Adapters::Test,
+    base:           Base
+  }.freeze
 
   class << self
     def new(model, adapter: nil, **options)

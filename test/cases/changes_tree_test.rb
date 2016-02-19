@@ -37,10 +37,10 @@ class ChangesTreeTest < ActiveSupport::TestCase
     changes_tree = @model.blueprint.changes_tree
 
     attributes = [
-        {name: :date_of_birth, type: :date, options: {}, kind: :added},
-        {name: :name, type: :string, options: {default: 'John'}, kind: :changed},
-        {name: :weight, type: :integer, options: {}, kind: :removed}
+      { name: :date_of_birth, type: :date, options: {}, kind: :added },
+      { name: :name, type: :string, options: { default: 'John' }, kind: :changed },
+      { name: :weight, type: :integer, options: {}, kind: :removed }
     ]
-    assert_equal({table_name: 'persons', table_exists: true, attributes: attributes}, changes_tree)
+    assert_equal({ table_name: 'persons', table_exists: true, attributes: attributes }, changes_tree)
   end
 end

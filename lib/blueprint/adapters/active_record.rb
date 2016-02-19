@@ -10,14 +10,14 @@ module Blueprint
         end
 
         def underscore(name)
-          name = name.gsub(/ /, '_')
-          name.gsub(/([a-z])([A-Z])/) { "#{$1}_#{$2.downcase}" }.downcase
+          name = name.tr(' ', '_')
+          name.gsub(/([a-z])([A-Z])/) { "#{Regexp.last_match[1]}_#{Regexp.last_match[2].downcase}" }.downcase
         end
 
         def camelize(name)
           name = underscore(name)
-          name = name.gsub(/^([a-z])/) { $1.upcase }
-          name.gsub(/_([a-zA-Z])/) { $1.upcase }
+          name = name.gsub(/^([a-z])/) { Regexp.last_match[1].upcase }
+          name.gsub(/_([a-zA-Z])/) { Regexp.last_match[1].upcase }
         end
 
         def generate_migration(name, trees)
@@ -38,10 +38,11 @@ module Blueprint
         end
       end
 
-      def initialize(model, id: true, timestamps: true, **options)
+      def initialize(model, id: true, timestamps: true, **_options)
         super(model)
 
-        @has_id, @has_timestamps = id, timestamps
+        @has_id         = id
+        @has_timestamps = timestamps
         @attributes.add(name: :id, type: :integer, null: false) if id
         @attributes.add(name: :created_at, type: :datetime)     if timestamps
         @attributes.add(name: :updated_at, type: :datetime)     if timestamps
@@ -50,7 +51,7 @@ module Blueprint
       def changes_tree
         changes_tree = super
 
-        if !changes_tree[:table_exists]
+        unless changes_tree[:table_exists]
           changes_tree[:has_id] = @has_id
           changes_tree[:attributes].reject! { |attribute| attribute[:name] == :id }
         end
@@ -60,7 +61,7 @@ module Blueprint
 
         if added_created_at.size == 1 && added_updated_at.size == 1
           changes_tree[:attributes] -= [*added_created_at, *added_updated_at]
-          changes_tree[:attributes] += [{type: :timestamps, kind: :added}]
+          changes_tree[:attributes] += [{ type: :timestamps, kind: :added }]
         end
 
         changes_tree
@@ -85,7 +86,7 @@ module Blueprint
           value = column.send(option)
           value = column.type_cast_from_database(value) if option == :default
           next if value == Blueprint.config.persisted_attribute_options[option]
-          {option => value}
+          { option => value }
         end.compact.inject(&:merge)
       end
 

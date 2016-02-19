@@ -6,6 +6,13 @@ Style/ExtraSpacing:
   Description: 'Do not use unnecessary spacing.'
   Enabled: false
 
+Style/SpaceAroundOperators:
+  Enabled: false
+
+Style/PredicateName:
+  NameWhitelist:
+    - has_blueprint
+
 Metrics/LineLength:
   Description: 'Limit lines to 80 characters.'
   StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#80-character-limits'

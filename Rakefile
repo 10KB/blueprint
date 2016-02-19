@@ -16,8 +16,7 @@ end
 
 task :migrate do
   require 'active_record'
-  c = ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
-  # c.connection.drop_table 'cars'
+  ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
   ActiveRecord::Migrator.migrations_paths << File.expand_path('../test/db/migrate', __FILE__)
   require 'schema'
 

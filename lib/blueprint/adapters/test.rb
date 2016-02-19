@@ -2,7 +2,7 @@ module Blueprint
   module Adapters
     class Test < ::Blueprint::Base
       class << self
-        def applicable?(model)
+        def applicable?(_model)
           false
         end
       end

@@ -8,7 +8,7 @@ module Blueprint
       end
     end
 
-    def initialize(model, **options)
+    def initialize(model, **_options)
       self.model      = model
       self.attributes = Attributes.new
     end
@@ -27,13 +27,13 @@ module Blueprint
         end
       end
 
-      {table_name: table_name, table_exists: table_exists?, attributes: attributes}
+      { table_name: table_name, table_exists: table_exists?, attributes: attributes }
     end
 
     def changes?
       changes = persisted_attributes.diff(attributes, type: :persisted)
       changes.any? do |_, attributes|
-        attributes.to_a.size > 0
+        !attributes.to_a.empty?
       end
     end
 

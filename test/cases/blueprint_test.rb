@@ -15,15 +15,15 @@ class BlueprintTest < ActiveSupport::TestCase
   end
 
   test 'a blueprint saves attributes with a type and options' do
-    @blueprint.string  :name, {default: 'John'}
+    @blueprint.string  :name, default: 'John'
     @blueprint.integer 'age'
 
-    assert_equal({name: :name, type: :string,  default: 'John'}, @blueprint.attributes.name.to_h)
-    assert_equal({name: :age,  type: :integer},                  @blueprint.attributes.age.to_h)
+    assert_equal({ name: :name, type: :string,  default: 'John' }, @blueprint.attributes.name.to_h)
+    assert_equal({ name: :age,  type: :integer },                  @blueprint.attributes.age.to_h)
   end
 
   test 'attributes can be accessed like a hash with indifferent access, but they can also be accessed as methods' do
-    @blueprint.string  :name, {default: 'John'}
+    @blueprint.string :name, default: 'John'
 
     assert_equal :string, @blueprint.attributes['name'][:type]
     assert_equal :string, @blueprint.attributes.name.type
@@ -60,10 +60,9 @@ class BlueprintModelTest < ActiveSupport::TestCase
     end
 
     assert_instance_of ::Blueprint::Base, model.blueprint
-    assert_equal({name: :name, type: :string,  default: 'John'}, model.blueprint.attributes.name.to_h)
-    assert_equal({name: :age,  type: :integer},                  model.blueprint.attributes.age.to_h)
+    assert_equal({ name: :name, type: :string,  default: 'John' }, model.blueprint.attributes.name.to_h)
+    assert_equal({ name: :age,  type: :integer },                  model.blueprint.attributes.age.to_h)
   end
-
 
   test "attributes can also be added to a model's blueprint via composition" do
     concern = Module.new do
@@ -86,8 +85,8 @@ class BlueprintModelTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal({name: :name, type: :string,  default: 'John'}, model.blueprint.attributes.name.to_h)
-    assert_equal({name: :age,  type: :integer},                  model.blueprint.attributes.age.to_h)
+    assert_equal({ name: :name, type: :string,  default: 'John' }, model.blueprint.attributes.name.to_h)
+    assert_equal({ name: :age,  type: :integer },                  model.blueprint.attributes.age.to_h)
   end
 
   test 'an adapter can be set by the user or is automatically determined if possible' do

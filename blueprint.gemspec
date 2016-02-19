@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = Dir['test/**/*']
   spec.bindir        = 'exe'
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
-  spec.require_paths = ['lib', 'vendor', 'test']
+  spec.require_paths = %w(lib vendor test)
 
   spec.add_runtime_dependency     'parslet',          '~> 1.7'
   spec.add_runtime_dependency     'terminal-table',   '~> 1.4'
