@@ -65,12 +65,7 @@ module Blueprint
     end
 
     def models
-      @@models
-    end
-
-    def <<(model)
-      return if @@models.map(&:name).include?(model.name)
-      @@models << model
+      @@models.sort_by { |model| model.name || 'anonymous' }
     end
 
     def blueprints

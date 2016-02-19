@@ -13,7 +13,7 @@ module Blueprint
     end
 
     def self.included(model)
-      Blueprint.models << model
+      Blueprint.models += [model]
       super
     end
   end

@@ -31,16 +31,16 @@ class MigratorTest < ActiveSupport::TestCase
     expected_migration = <<-RUBY
 class TestMigration < ActiveRecord::Migration
   def change
-    change_table :users do |t|
-      t.change :name, :string, {:default=>"Joe"}
-      t.change :age, :integer, {:default=>10}
-      t.remove :date_of_birth
-    end
-
     create_table :cars do |t|
       t.string :brand, {:default=>"BMW"}
       t.decimal :price, {:precision=>5, :scale=>10}
       t.timestamps
+    end
+
+    change_table :users do |t|
+      t.change :name, :string, {:default=>"Joe"}
+      t.change :age, :integer, {:default=>10}
+      t.remove :date_of_birth
     end
   end
 end
