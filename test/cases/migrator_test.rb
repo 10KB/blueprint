@@ -23,8 +23,8 @@ class MigratorTest < ActiveSupport::TestCase
 
     Blueprint::Migrator.eager_load!
 
-    assert_include Blueprint.models, Car
-    assert_include Blueprint.models, User
+    assert_includes Blueprint.models, Car
+    assert_includes Blueprint.models, User
   end
 
   test "blueprint can write all changes to migration" do
