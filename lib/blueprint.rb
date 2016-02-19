@@ -69,6 +69,7 @@ module Blueprint
     end
 
     def <<(model)
+      return if @@models.map(&:name).include?(model.name)
       @@models << model
     end
 
