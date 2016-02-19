@@ -13,8 +13,10 @@ require 'blueprint'
 Blueprint.config do |c|
   c.eager_load       = true
   c.eager_load_paths += ['models/**/*.rb']
-  c.migration_path   = File.expand_path("../test/db/migration", __FILE__)
+  c.migration_path   = File.expand_path("../../test/db/migrate", __FILE__)
 end
+
+Blueprint::Migrator.eager_load!
 
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.

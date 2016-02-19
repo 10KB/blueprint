@@ -40,4 +40,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'flog'
   spec.add_development_dependency 'brakeman'
   spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'simplecov'
 end

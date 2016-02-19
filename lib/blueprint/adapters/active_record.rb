@@ -28,7 +28,7 @@ module Blueprint
         end
 
         def migration(name, trees)
-          "class #{camelize(name)} < ActiveRecord::Migration\n  def change\n" + transform(trees) + "  end\nend"
+          "class #{camelize(name)} < ActiveRecord::Migration\n  def change\n" + transform(trees) + "  end\nend\n"
         end
 
         private

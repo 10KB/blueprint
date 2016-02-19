@@ -13,7 +13,7 @@ module Blueprint
       self.attributes = Attributes.new
     end
 
-    def explanation(index)
+    def explanation(index = 1)
       return unless changes?
       Terminal::Table.new(Explanation.apply(self, index))
     end

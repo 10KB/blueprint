@@ -7,9 +7,9 @@ module Blueprint
         Blueprint.models = []
         Rails.application.eager_load! if defined?(Rails)
 
-        [*Blueprint.config.eager_load_paths].each do |path|
+        [*Blueprint.config.eager_load_paths.uniq].each do |path|
           Gem.find_files(path).each do |file|
-            require file
+            load file
           end
         end
       end
@@ -20,25 +20,30 @@ module Blueprint
         end
       end
 
-      def interactive
-        eager_load!
-        cli = HighLine.new
+      def interactive(input: $stdin, output: $stdout, migrate_input: $stdin, migrate_output: $stdout)
+        # TODO: Clean up
 
-        cli.say 'Blueprint detected no changes' && return if number_of_changes == 0
+        eager_load!
+        cli = HighLine.new input, output
+
+        cli.say "Blueprint detected no changes" and return if number_of_changes == 0
         cli.say "Blueprint has detected <%= color('#{number_of_changes}', :bold, :blue) %> changes to your models."
         explanations.each do |explanation|
           cli.say explanation
         end
+
         cli.choose do |menu|
           menu.header = 'Migrations'
           menu.prompt = 'How would you like to process these changes?'
-          menu.choice('In one migration')       { migrate_at_once }
+          menu.choice('In one migration')       { migrate_at_once(input: migrate_input, output: migrate_output) }
           menu.choice('In separate migrations') { cli.say 'Bar' }
         end
       end
 
-      def migrate_at_once
-        cli = HighLine.new
+      def migrate_at_once(input: $stdin, output: $stdout)
+        # TODO: Clean up
+
+        cli = HighLine.new input, output
         name = cli.ask 'How would you like to name this migration?'
         Blueprint.changed_blueprints
                  .group_by(&:class)

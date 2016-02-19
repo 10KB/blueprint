@@ -29,12 +29,12 @@ module Blueprint
 
         Class.new(Blueprint::Transform) do
           create_table do
-            table[:headings]  = %w(name 'type 'options)
+            table[:headings]  = %w(name type options)
             table[:title]    += "Create a new table #{table_name}"
           end
 
           create_table_without_id do
-            table[:headings]  = %w(name 'type 'options')
+            table[:headings]  = %w(name type options)
             table[:title]    += "Create a new table #{table_name} (without id)"
           end
 

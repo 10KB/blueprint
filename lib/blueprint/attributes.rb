@@ -84,7 +84,7 @@ module Blueprint
     end
 
     def diff(diff, type: nil)
-      # TODO: cleanup
+      # TODO: Clean up
       added   = diff.slice(*(diff.keys - keys))
       changed = diff.to_diff_a(type) - to_diff_a(type) - added.to_diff_a(type)
       changed = Attributes.new(Hash[changed].map { |key, options| { key => Attribute.new(persisted: true, **options) } }.inject(&:merge))
