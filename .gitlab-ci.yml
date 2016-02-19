@@ -6,7 +6,7 @@ before_script:
 
 test:lib:
   script:
-    - RAILS_ENV=test bundle exec rake test
+    - RAILS_ENV=test SIMPLECOV=true bundle exec rake test
   tags:
     - ruby
     - postgresql
