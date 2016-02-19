@@ -14,6 +14,7 @@ module Blueprint
   require 'blueprint/explanation'
   require 'blueprint/model'
   require 'blueprint/migrator'
+  require 'blueprint/transform'
 
   config do |c|
     c.default_adapter             = :base

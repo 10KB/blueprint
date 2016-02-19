@@ -1,75 +1,73 @@
 module Blueprint
-  class Explanation
-    def self.apply(blueprint, index)
-      @table = {title: "#{index}. ", rows: [], style: {width: 100}}
-
-      changes_tree, persisted_attributes, table = blueprint.changes_tree, blueprint.persisted_attributes, @table
-      transformer = Class.new(Parslet::Transform) do
-        rule(table_exists: false,
-             has_id: true,
-             table_name: simple(:table_name),
-             attributes: subtree(:attributes)
-        ) {
-          table[:headings]  = ['name', 'type', 'options']
-          table[:title]     += "Create a new table #{table_name}"
-        }
-
-        rule(table_exists: false,
-             has_id: false,
-             table_name: simple(:table_name),
-             attributes: subtree(:attributes)
-        ) {
-          table[:headings]  = ['name', 'type', 'options']
-          table[:title]     += "Create a new table #{table_name} (without id)"
-        }
-
-        rule(table_exists: true,
-             table_name: simple(:table_name),
-             attributes: subtree(:attributes)
-        ) {
-          table[:headings]  = ['action', 'name', 'type', 'type (currently)', 'options', 'options (currently)']
-          table[:title]     += "Make changes to #{table_name}"
-        }
-
-        rule(kind: :added,
-             name: simple(:name),
-             type: simple(:type),
-             options: subtree(:options)
-        ) {
-          if !changes_tree[:table_exists]
-            table[:rows] << [name, type, options.to_s]
-          else
-            table[:rows] << ['added', name, type, nil, options.to_s, nil]
-          end
-        }
-
-        rule(kind: :added,
-             type: :timestamps,
-        ) {
-          if !changes_tree[:table_exists]
-            table[:rows] << ['timestamps', nil, nil]
-          else
-            table[:rows] << ['added', 'timestamps', nil, nil, nil, nil]
-          end
-        }
-
-        rule(kind: :changed,
-             name: simple(:name),
-             type: simple(:type),
-             options: subtree(:options)
-        )                             {
-          table[:rows] << ['change', name, type, persisted_attributes[name][:type],  options.to_s, persisted_attributes[name][:options].to_s]
-        }
-
-        rule(kind: :removed,
-             name: simple(:name),
-             type: simple(:type),
-             options: subtree(:options)
-        )                             { table[:rows] << ['remove', name, nil, nil, nil, nil] }
+  module Explanation
+    class << self
+      def apply(blueprint, index)
+        @table     = {title: "#{index}. ", rows: [], style: {width: 100}}
+        @blueprint = blueprint
+        transformer.new.apply(blueprint.changes_tree)
+        @table
       end
 
-      transformer.new.apply(changes_tree)
-      table
+      private
+
+      def helpers
+        type_was = lambda do |name|
+          @blueprint.persisted_attributes[name][:type].to_s
+        end
+
+        options_was = lambda do |name|
+          @blueprint.persisted_attributes[name][:options].to_s
+        end
+
+        table_exists = @blueprint.changes_tree[:table_exists]
+
+        [type_was, options_was, table_exists]
+      end
+
+      def transformer
+        table, type_was, options_was, table_exists = @table, *helpers
+
+        Class.new(Blueprint::Transform) do
+          create_table do
+            table[:headings]  = ['name', 'type', 'options']
+            table[:title]    += "Create a new table #{table_name}"
+          end
+
+          create_table_without_id do
+            table[:headings]  = ['name', 'type', 'options']
+            table[:title]    += "Create a new table #{table_name} (without id)"
+          end
+
+          change_table do
+            table[:headings]  = ['action', 'name', 'type', 'type (currently)', 'options', 'options (currently)']
+            table[:title]    += "Make changes to #{table_name}"
+          end
+
+          added_attribute do
+            if table_exists
+              table[:rows] << ['added', name, type, nil, options.to_s, nil]
+            else
+              table[:rows] << [name, type, options.to_s]
+            end
+          end
+
+          added_timestamps do
+            if table_exists
+              table[:rows] << ['added', 'timestamps', nil, nil, nil, nil]
+            else
+              table[:rows] << ['timestamps', nil, nil]
+            end
+          end
+
+          changed_attribute do
+            table[:rows] << ['change', name, type, type_was[name],  options.to_s, options_was[name]]
+          end
+
+          removed_attribute do
+            table[:rows] << ['remove', name, nil, nil, nil, nil]
+          end
+        end
+      end
     end
   end
 end
