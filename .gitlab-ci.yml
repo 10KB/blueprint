@@ -1,0 +1,30 @@
+before_script:
+  - ruby -v
+  - which ruby
+  - gem install bundler --no-ri --no-rdoc
+  - bundle install --jobs $(($(nproc) + 1))
+
+test:lib:
+  script:
+    - RAILS_ENV=test bundle exec rake test
+  tags:
+    - ruby
+    - postgresql
+
+style:
+  script:
+    - bundle exec rake analysis:style
+  tags:
+    - ruby
+
+duplication:
+  script:
+    - bundle exec rake analysis:duplication
+  tags:
+    - ruby
+
+comlexity:
+  script:
+    - bundle exec rake analysis:comlexity
+  tags:
+    - ruby
