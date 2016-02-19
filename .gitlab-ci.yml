@@ -16,15 +16,18 @@ style:
     - bundle exec rake analysis:style
   tags:
     - ruby
+  allow_failure: true
 
 duplication:
   script:
     - bundle exec rake analysis:duplication
   tags:
     - ruby
+  allow_failure: true
 
 comlexity:
   script:
     - bundle exec rake analysis:comlexity
   tags:
     - ruby
+  allow_failure: true
