@@ -21,8 +21,8 @@ module Blueprint
     def changes_tree
       changes = persisted_attributes.diff(attributes, type: :persisted)
 
-      attributes = changes.flat_map do |kind, attributes|
-        attributes.to_a.map do |attribute|
+      attributes = changes.flat_map do |kind, changed_attributes|
+        changed_attributes.to_a.map do |attribute|
           attribute.to_persisted(kind: kind).to_h
         end
       end
