@@ -10,11 +10,11 @@ class MigratorTest < ActiveSupport::TestCase
     Blueprint.config do |c|
       c.eager_load       = true
       c.eager_load_paths += ['models/**/*.rb']
-      c.migration_path   = File.expand_path("../../db/migrate", __FILE__)
+      c.migration_path   = File.expand_path('../../db/migrate', __FILE__)
     end
   end
 
-  test "models can be eager loaded by blueprint" do
+  test 'models can be eager loaded by blueprint' do
     Object.send :remove_const, :Car
     Object.send :remove_const, :User
 
@@ -27,7 +27,7 @@ class MigratorTest < ActiveSupport::TestCase
     assert_includes Blueprint.models, User
   end
 
-  test "blueprint can write all changes to migration" do
+  test 'blueprint can write all changes to migration' do
     expected_migration = <<-RUBY
 class TestMigration < ActiveRecord::Migration
   def change
@@ -51,7 +51,7 @@ end
     input.rewind
 
     migrate_input = StringIO.new
-    migrate_input << "test migration" << "\n"
+    migrate_input << 'test migration' << "\n"
     migrate_input.rewind
 
     Blueprint::Migrator.interactive input: input, migrate_input: migrate_input

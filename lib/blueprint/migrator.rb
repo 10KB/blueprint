@@ -26,7 +26,7 @@ module Blueprint
         eager_load!
         cli = HighLine.new input, output
 
-        cli.say "Blueprint detected no changes" and return if number_of_changes == 0
+        cli.say 'Blueprint detected no changes' and return if number_of_changes == 0
         cli.say "Blueprint has detected <%= color('#{number_of_changes}', :bold, :blue) %> changes to your models."
         explanations.each do |explanation|
           cli.say explanation

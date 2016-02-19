@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class ExplanationTest < ActiveSupport::TestCase
-  test "the changes blueprint is about to process can be visualized in a table" do
+  test 'the changes blueprint is about to process can be visualized in a table' do
     user_explanation = <<-TXT.sub(/\n$/, '')
 +--------+---------------+---------+------------------+-------------------+------------------------+
 |                                     1. Make changes to users                                     |
