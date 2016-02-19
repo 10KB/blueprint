@@ -7,7 +7,7 @@ require 'active_support'
 require 'active_support/testing/autorun'
 
 require 'active_record'
-ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:"
+ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
 require 'schema'
 
 require 'blueprint'

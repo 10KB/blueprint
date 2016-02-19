@@ -1,4 +1,4 @@
-require "blueprint/version"
+require 'blueprint/version'
 
 module Blueprint
   require 'active_support/concern' unless defined?(ActiveSupport)

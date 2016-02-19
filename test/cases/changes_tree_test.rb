@@ -27,13 +27,13 @@ class ChangesTreeTest < ActiveSupport::TestCase
     end
   end
 
-  test "the test adapter can set its persisted attributes with a block" do
+  test 'the test adapter can set its persisted attributes with a block' do
     assert_equal Blueprint::Attribute.new(name: :name, type: :string),             @model.blueprint.persisted_attributes.name
     assert_equal Blueprint::Attribute.new(name: :age, type: :integer, default: 0), @model.blueprint.persisted_attributes.age
     assert_equal Blueprint::Attribute.new(name: :weight, type: :integer),          @model.blueprint.persisted_attributes.weight
   end
 
-  test "a blueprint can generate a changes_tree with all the differences between the persisted attributes and the actual attributes" do
+  test 'a blueprint can generate a changes_tree with all the differences between the persisted attributes and the actual attributes' do
     changes_tree = @model.blueprint.changes_tree
 
     attributes = [

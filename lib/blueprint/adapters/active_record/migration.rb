@@ -8,7 +8,7 @@ module Blueprint
       added_attribute         { "      t.#{type} :#{name}, #{options}" }
       changed_attribute       { "      t.change :#{name}, :#{type}, #{options}" }
       removed_attribute       { "      t.remove :#{name}" }
-      added_timestamps        { "      t.timestamps" }
+      added_timestamps        { '      t.timestamps' }
     end
   end
 end

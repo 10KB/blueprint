@@ -12,13 +12,13 @@ class AttributesTest < ActiveSupport::TestCase
     @attributes.add name: 'date_of_birth',  type: :date
   end
 
-  test "an attribute can be asked whether it has a certain key or keys" do
+  test 'an attribute can be asked whether it has a certain key or keys' do
     assert_equal true,  @attribute.has?(:type)
     assert_equal true,  @attribute.has?(:type, :default)
     assert_equal false, @attribute.has?(:type, :foo)
   end
 
-  test "an attribute can be asked whether it has a certain values" do
+  test 'an attribute can be asked whether it has a certain values' do
     assert_equal true,  @attribute.has?(type: :integer)
     assert_equal false, @attribute.has?(type: :string)
     assert_equal true,  @attribute.has?(type: :integer, default: 10)
@@ -26,7 +26,7 @@ class AttributesTest < ActiveSupport::TestCase
     assert_equal false, @attribute.has?(:type, default: 11)
   end
 
-  test "attributes can be queried" do
+  test 'attributes can be queried' do
     assert_equal @attributes.to_h.slice(:name, :height),        @attributes.where(:default).to_h
     assert_equal @attributes.to_h.slice(:name),                 @attributes.where(default: 'John').to_h
     assert_equal @attributes.to_h.slice(:age, :height),         @attributes.where(type: :integer).to_h
@@ -34,7 +34,7 @@ class AttributesTest < ActiveSupport::TestCase
     assert_equal @attributes.to_h.slice(:name),                 @attributes.where(:default).not(type: :integer).to_h
   end
 
-  test "attributes can be diffed" do
+  test 'attributes can be diffed' do
     diff = @attributes.where(:default).diff(@attributes)
 
     assert_equal @attributes.to_h.slice(:age, :date_of_birth), diff[:added].to_h

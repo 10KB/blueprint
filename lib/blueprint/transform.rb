@@ -23,7 +23,7 @@ module Blueprint
       end
 
       def indent(indent)
-        "  " * indent
+        '  ' * indent
       end
     end
 

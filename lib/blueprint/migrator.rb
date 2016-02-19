@@ -24,14 +24,14 @@ module Blueprint
         eager_load!
         cli = HighLine.new
 
-        cli.say "Blueprint detected no changes" and return if number_of_changes == 0
+        cli.say 'Blueprint detected no changes' and return if number_of_changes == 0
         cli.say "Blueprint has detected <%= color('#{number_of_changes}', :bold, :blue) %> changes to your models."
         explanations.each do |explanation|
           cli.say explanation
         end
         cli.choose do |menu|
-          menu.header = "Migrations"
-          menu.prompt = "How would you like to process these changes?"
+          menu.header = 'Migrations'
+          menu.prompt = 'How would you like to process these changes?'
           menu.choice('In one migration')       { migrate_at_once }
           menu.choice('In separate migrations') { cli.say 'Bar' }
         end
@@ -39,7 +39,7 @@ module Blueprint
 
       def migrate_at_once
         cli = HighLine.new
-        name = cli.ask "How would you like to name this migration?"
+        name = cli.ask 'How would you like to name this migration?'
         Blueprint.changed_blueprints.group_by do |blueprint|
           blueprint.class
         end.map do |adapter, blueprints|

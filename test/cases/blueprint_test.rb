@@ -6,15 +6,15 @@ class BlueprintTest < ActiveSupport::TestCase
     @blueprint = ::Blueprint::Base.new(@model)
   end
 
-  test "a blueprint is tied to a model" do
+  test 'a blueprint is tied to a model' do
     assert_equal @model, @blueprint.model
   end
 
-  test "a blueprint is initialized with an empty set of attributes" do
+  test 'a blueprint is initialized with an empty set of attributes' do
     assert_equal({}, @blueprint.attributes.to_h)
   end
 
-  test "a blueprint saves attributes with a type and options" do
+  test 'a blueprint saves attributes with a type and options' do
     @blueprint.string  :name, {default: 'John'}
     @blueprint.integer 'age'
 
@@ -22,7 +22,7 @@ class BlueprintTest < ActiveSupport::TestCase
     assert_equal({name: :age,  type: :integer},                  @blueprint.attributes.age.to_h)
   end
 
-  test "attributes can be accessed like a hash with indifferent access, but they can also be accessed as methods" do
+  test 'attributes can be accessed like a hash with indifferent access, but they can also be accessed as methods' do
     @blueprint.string  :name, {default: 'John'}
 
     assert_equal :string, @blueprint.attributes['name'][:type]
@@ -33,7 +33,7 @@ class BlueprintTest < ActiveSupport::TestCase
 end
 
 class BlueprintModelTest < ActiveSupport::TestCase
-  test "a model responds to blueprint (and schema) if Blueprint::Model is included" do
+  test 'a model responds to blueprint (and schema) if Blueprint::Model is included' do
     model = Class.new do
       include Blueprint::Model
     end
@@ -41,7 +41,7 @@ class BlueprintModelTest < ActiveSupport::TestCase
     assert_respond_to model, :schema
   end
 
-  test "if a model inherits from ActiveRecord::Base has_blueprint does the same as including Blueprint::Model" do
+  test 'if a model inherits from ActiveRecord::Base has_blueprint does the same as including Blueprint::Model' do
     model = Class.new(ActiveRecord::Base) do
       has_blueprint
     end
@@ -49,7 +49,7 @@ class BlueprintModelTest < ActiveSupport::TestCase
     assert model < Blueprint::Model
   end
 
-  test "a model can add attribtues to its blueprint by passing the blueprint method a block" do
+  test 'a model can add attribtues to its blueprint by passing the blueprint method a block' do
     model = Class.new do
       include Blueprint::Model
 
@@ -90,7 +90,7 @@ class BlueprintModelTest < ActiveSupport::TestCase
     assert_equal({name: :age,  type: :integer},                  model.blueprint.attributes.age.to_h)
   end
 
-  test "an adapter can be set by the user or is automatically determined if possible" do
+  test 'an adapter can be set by the user or is automatically determined if possible' do
     model = Class.new do
       include Blueprint::Model
 
