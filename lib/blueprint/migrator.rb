@@ -5,7 +5,10 @@ module Blueprint
         return unless Blueprint.config.eager_load
 
         Blueprint.models = []
-        Rails.application.eager_load! if defined?(Rails)
+        if defined?(Rails)
+          Rails.application.initialize!
+          Rails.application.eager_load!
+        end
 
         [*Blueprint.config.eager_load_paths.uniq].each do |path|
           Gem.find_files(path).each do |file|

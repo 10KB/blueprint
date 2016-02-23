@@ -37,6 +37,8 @@ module Blueprint
     end
   end
 
+  require 'blueprint/railtie' if defined?(Rails)
+
   require 'blueprint/adapters/active_record'
   require 'blueprint/adapters/test'
 

@@ -14,20 +14,10 @@ Rake::TestTask.new do |t|
   t.warning = true
 end
 
-task :migrate do
-  require 'active_record'
-  ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
-  ActiveRecord::Migrator.migrations_paths << File.expand_path('../test/db/migrate', __FILE__)
-  require 'schema'
-
-  require 'blueprint'
-  Blueprint.config do |c|
-    c.eager_load       = true
-    c.eager_load_paths += ['models/**/*.rb']
-    c.migration_path   = File.expand_path('../test/db/migrate', __FILE__)
+namespace :blueprint do
+  task :migrate do
+    Blueprint::Migrator.interactive
   end
-
-  Blueprint::Migrator.interactive
 end
 
 namespace :analysis do

@@ -21,11 +21,9 @@ Gem::Specification.new do |spec|
   DESC
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  spec.files         = Dir['{lib,vendor}/**/*', 'LICENSE', 'Rakefile', 'README.md']
   spec.test_files    = Dir['test/**/*']
-  spec.bindir        = 'exe'
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
-  spec.require_paths = %w(lib vendor test)
+  spec.require_paths = %w(lib vendor)
 
   spec.add_runtime_dependency     'parslet',          '~> 1.7'
   spec.add_runtime_dependency     'terminal-table',   '~> 1.4'
