@@ -5,10 +5,7 @@ module Blueprint
         return unless Blueprint.config.eager_load
 
         Blueprint.models = []
-        if defined?(Rails)
-          Rails.application.initialize!
-          Rails.application.eager_load!
-        end
+        Rails.application.eager_load! if defined?(Rails)
 
         [*Blueprint.config.eager_load_paths.uniq].each do |path|
           Gem.find_files(path).each do |file|
@@ -29,7 +26,11 @@ module Blueprint
         eager_load!
         cli = HighLine.new input, output
 
-        cli.say 'Blueprint detected no changes' and return if number_of_changes == 0
+        if number_of_changes == 0
+          cli.say('Blueprint detected no changes')
+          return
+        end
+
         cli.say "Blueprint has detected <%= color('#{number_of_changes}', :bold, :blue) %> changes to your models."
         explanations.each do |explanation|
           cli.say explanation

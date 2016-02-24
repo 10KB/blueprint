@@ -21,6 +21,7 @@ module Blueprint
     c.eager_load                  = false
     c.eager_load_paths            = []
     c.persisted_attribute_options = {
+      array: false,
       limit: nil,
       precision: nil,
       scale: nil,

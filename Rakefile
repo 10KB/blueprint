@@ -14,12 +14,6 @@ Rake::TestTask.new do |t|
   t.warning = true
 end
 
-namespace :blueprint do
-  task :migrate do
-    Blueprint::Migrator.interactive
-  end
-end
-
 namespace :analysis do
   RuboCop::RakeTask.new
 

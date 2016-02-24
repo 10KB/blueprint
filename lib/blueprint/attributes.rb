@@ -11,7 +11,7 @@ module Blueprint
 
     def has?(*keys, **conditions)
       keys.none? do |key|
-        @options[key].nil?
+        @options.values_at(*key).compact.empty?
       end && conditions.all? do |key, value|
         [*@options[key]] & [*value] != []
       end
