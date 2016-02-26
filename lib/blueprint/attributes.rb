@@ -29,7 +29,7 @@ module Blueprint
       self.class.new(persisted: @persisted, **@options, **options)
     end
 
-    def to_persisted(**config)
+    def for_persisted(**config)
       return merge(config) if @persisted
       self.class.new(persisted: true, name: @options[:name], type: @options[:type], options: persisted_options, **config)
     end
@@ -83,6 +83,10 @@ module Blueprint
       @attributes[name.to_sym] = Attribute.new(name: name.to_sym, type: type.to_sym, **options)
     end
 
+    def as_json(*args)
+      super['attributes']
+    end
+
     def diff(diff, type: nil)
       # TODO: Clean up
       added   = diff.slice(*(diff.keys - keys))
@@ -117,16 +121,28 @@ module Blueprint
       @attributes.values
     end
 
-    def to_persisted
+    def for_persisted
       @attributes.each do |name, attribute|
-        @attributes[name] = attribute.to_persisted
+        @attributes[name] = attribute.for_persisted
       end
       self
     end
 
+    def for_meta
+      where(::Blueprint.config.meta_attribute_options)
+    end
+
+    def for_serializer
+      self.not(private: true).keys
+    end
+
+    def for_permitted
+      self.not(readonly: true)
+    end
+
     def to_diff_a(type)
       if type
-        to_h.map { |name, attr| [name, attr.send("to_#{type}").to_h] }
+        to_h.map { |name, attr| [name, attr.send("for_#{type}").to_h] }
       else
         to_h.map { |name, attr| [name, attr.to_h] }
       end

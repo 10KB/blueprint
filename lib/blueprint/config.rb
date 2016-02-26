@@ -6,7 +6,8 @@ module Blueprint
 
   module Config
     class << self
-      attr_accessor :default_adapter, :persisted_attribute_options, :eager_load, :eager_load_paths, :migration_path
+      attr_accessor :default_adapter, :persisted_attribute_options, :eager_load, :eager_load_paths,
+                    :migration_path, :meta_attribute_options
     end
   end
 end

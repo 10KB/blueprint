@@ -73,7 +73,7 @@ module Blueprint
         model.columns.map do |column|
           attributes.add options_from_column(column)
         end
-        attributes.to_persisted
+        attributes.for_persisted
       end
 
       def migration(name)

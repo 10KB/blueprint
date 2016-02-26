@@ -29,6 +29,7 @@ module Blueprint
       null: true,
       default: nil
     }
+    c.meta_attribute_options      = [:enum]
   end
 
   if defined?(ActiveRecord)

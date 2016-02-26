@@ -23,7 +23,7 @@ module Blueprint
 
       attributes = changes.flat_map do |kind, changed_attributes|
         changed_attributes.to_a.map do |attribute|
-          attribute.to_persisted(kind: kind).to_h
+          attribute.for_persisted(kind: kind).to_h
         end
       end
 
