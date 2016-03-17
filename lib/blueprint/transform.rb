@@ -21,10 +21,6 @@ module Blueprint
           options: subtree(:options)
         }
       end
-
-      def indent(indent)
-        '  ' * indent
-      end
     end
 
     create_rule :create_table,             table_exists: false, has_id: true,  **table_expression

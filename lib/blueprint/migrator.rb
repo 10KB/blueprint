@@ -4,7 +4,6 @@ module Blueprint
       def eager_load!
         return unless Blueprint.config.eager_load
 
-        Blueprint.models = []
         Rails.application.eager_load! if defined?(Rails)
 
         [*Blueprint.config.eager_load_paths.uniq].each do |path|
@@ -50,7 +49,7 @@ module Blueprint
         cli = HighLine.new input, output
         name = cli.ask 'How would you like to name this migration?'
         Blueprint.changed_blueprints
-                 .group_by(&:class)
+                 .group_by(&:transformer)
                  .map do |adapter, blueprints|
                    adapter.generate_migration(name, blueprints.map(&:changes_tree))
                  end

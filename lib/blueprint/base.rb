@@ -9,8 +9,8 @@ module Blueprint
     end
 
     def initialize(model, **_options)
-      self.model      = model
-      self.attributes = Attributes.new
+      self.model                 = model
+      self.attributes            = Attributes.new
     end
 
     def explanation(index = 1)
@@ -23,8 +23,9 @@ module Blueprint
 
       attributes = changes.flat_map do |kind, changed_attributes|
         changed_attributes.to_a.map do |attribute|
+          next if attribute.virtual
           attribute.for_persisted(kind: kind).to_h
-        end
+        end.compact
       end
 
       { table_name: table_name, table_exists: table_exists?, attributes: attributes }
@@ -33,8 +34,12 @@ module Blueprint
     def changes?
       changes = persisted_attributes.diff(attributes, type: :persisted)
       changes.any? do |_, attributes|
-        !attributes.to_a.empty?
+        !attributes.to_a.reject(&:virtual).empty?
       end
+    end
+
+    def persisted_attributes
+      Blueprint::Attributes.new
     end
 
     def table_name
@@ -45,8 +50,12 @@ module Blueprint
       model.table_exists?
     end
 
+    def transformer
+      self.class
+    end
+
     def method_missing(type, name, **options)
-      @attributes.add name: name, type: type, **options
+      @attributes.add name: name.to_sym, type: type, **options
     end
   end
 end

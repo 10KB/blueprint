@@ -18,7 +18,10 @@ module Blueprint
     end
 
     def persisted_options
-      @options.select { |key, _| Blueprint.config.persisted_attribute_options.keys.include?(key) }
+      @options.select do |key, value|
+        Blueprint.config.persisted_attribute_options.keys.include?(key) &&
+        !(key == :default && value.is_a?(Symbol))
+      end
     end
 
     def to_h
@@ -149,6 +152,7 @@ module Blueprint
     end
 
     def [](name)
+      return unless name
       @attributes[name.to_sym]
     end
 

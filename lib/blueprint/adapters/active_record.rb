@@ -2,6 +2,7 @@ module Blueprint
   module Adapters
     class ActiveRecord < ::Blueprint::Base
       require 'blueprint/adapters/active_record/migration'
+      require 'blueprint/adapters/active_record/has_and_belongs_to_many'
 
       class << self
         def applicable?(model)
@@ -64,16 +65,45 @@ module Blueprint
           changes_tree[:attributes] += [{ type: :timestamps, kind: :added }]
         end
 
+        changes_tree[:attributes].each do |attribute|
+          persisted_attribute = persisted_attributes[attribute[:name]]
+          if persisted_attribute && attribute[:options][:default].nil? && persisted_attribute[:options][:default]
+            changes_tree[:attributes] += [{ name: attribute[:name], kind: :removed_default }]
+          end
+        end
+
         changes_tree
       end
 
-      def persisted_attributes
-        attributes = Blueprint::Attributes.new
-        return attributes unless table_exists?
-        model.columns.map do |column|
-          attributes.add options_from_column(column)
+      def has_and_belongs_to_many(name, **options)
+        model.send(:has_and_belongs_to_many, name.to_sym, **options) unless model.reflect_on_association(name)
+
+        association = model.reflect_on_association(name)
+
+        Class.new do
+          include Blueprint::Model
+
+          @association = association
+
+          blueprint(adapter: :has_and_belongs_to_many, id: false, timestamps: false) do
+            integer association.foreign_key
+            integer association.association_foreign_key
+          end
+
+          class << self
+            def name
+              "#{@association.join_table}_habtm_model"
+            end
+
+            def table_name
+              @association.join_table
+            end
+
+            def table_exists?
+              ::ActiveRecord::Base.connection.table_exists?(table_name)
+            end
+          end
         end
-        attributes.for_persisted
       end
 
       def migration(name)
@@ -82,7 +112,16 @@ module Blueprint
 
       def options_from_column(column)
         [:name, :type, *Blueprint.config.persisted_attribute_options.keys].map do |option|
-          next unless column.respond_to?(option)
+          association_by_foreign_key = find_association_by_foreign_key(column)
+          overridden_name            = association_by_foreign_key && association_by_foreign_key.name || column.name
+          current_attribute          = attributes[overridden_name]
+
+          next {name: overridden_name}               if option == :name        && association_by_foreign_key
+          next {type: :references}                   if option == :type        && association_by_foreign_key
+          next {polymorphic: true}                   if option == :polymorphic && association_by_foreign_key && model.column_names.include?(association_by_foreign_key.foreign_type)
+          next                                       unless column.respond_to?(option)
+          next {default: current_attribute.default}  if option == :default && current_attribute && current_attribute.default.is_a?(Symbol)
+
           value = column.send(option)
           value = column.type_cast_from_database(value) if option == :default
           next if value == Blueprint.config.persisted_attribute_options[option]
@@ -90,9 +129,50 @@ module Blueprint
         end.compact.inject(&:merge)
       end
 
+      def persisted_attributes
+        attributes = Blueprint::Attributes.new
+        return attributes unless table_exists?
+        model.columns.each do |column|
+          next if find_association_by_foreign_type(column)
+
+          attributes.add options_from_column(column)
+        end
+        attributes.for_persisted
+      end
+
+      def references(name, **options)
+        super
+        model.send :belongs_to, name.to_sym, **options
+      end
+
       def table_exists?
         ::ActiveRecord::Base.connection.schema_cache.clear!
         ::ActiveRecord::Base.connection.table_exists?(table_name)
+      end
+
+      def method_missing(type, name, **options)
+        super
+
+        if options[:default] && options[:default].is_a?(Symbol)
+          model.send :after_initialize do
+            next if self.send(name) || !new_record?
+            self.send "#{name}=", send(options[:default])
+          end
+        end
+      end
+
+      private
+
+      def find_association_by_foreign_key(column)
+        model.reflect_on_all_associations.find do |association|
+          association.foreign_key == column.name
+        end
+      end
+
+      def find_association_by_foreign_type(column)
+        model.reflect_on_all_associations.find do |association|
+          association.polymorphic? && association.foreign_type == column.name
+        end
       end
     end
   end

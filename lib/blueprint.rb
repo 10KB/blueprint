@@ -45,9 +45,10 @@ module Blueprint
   require 'blueprint/adapters/test'
 
   ADAPTERS = {
-    active_record:  Adapters::ActiveRecord,
-    test:           Adapters::Test,
-    base:           Base
+    active_record:            Adapters::ActiveRecord,
+    has_and_belongs_to_many:  Adapters::ActiveRecord::HasAndBelongsToMany,
+    test:                     Adapters::Test,
+    base:                     Base
   }.freeze
 
   class << self
@@ -69,7 +70,9 @@ module Blueprint
     end
 
     def models
-      @@models.sort_by { |model| model.name || 'anonymous' }
+      @@models.select  { |model| model.is_a?(Class) }
+              .sort_by { |model| model.name || model.object_id.to_s }
+              .uniq    { |model| model.name || model.object_id.to_s }
     end
 
     def blueprints
