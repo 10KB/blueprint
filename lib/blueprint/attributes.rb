@@ -140,7 +140,13 @@ module Blueprint
     end
 
     def for_permitted
-      self.not(readonly: true)
+      self.not(readonly: true).map do |name, attribute|
+        name
+      end
+    end
+
+    def for_permitted_json
+      self.not(readonly: true).where(type: [:json, :jsonb]).keys
     end
 
     def to_diff_a(type)
