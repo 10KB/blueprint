@@ -140,7 +140,7 @@ module Blueprint
     end
 
     def for_permitted
-      self.not(readonly: true).map do |name, attribute|
+      self.not(readonly: true).to_h.map do |name, attribute|
         name
       end
     end

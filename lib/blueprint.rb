@@ -71,12 +71,13 @@ module Blueprint
 
     def models
       @@models.select  { |model| model.is_a?(Class) }
+              .reject  { |model| model.respond_to?(:abstract_class) && model.abstract_class }
               .sort_by { |model| model.name || model.object_id.to_s }
               .uniq    { |model| model.name || model.object_id.to_s }
     end
 
     def blueprints
-      models.map(&:blueprint)
+      models.map(&:blueprint).compact
     end
 
     def changed_blueprints

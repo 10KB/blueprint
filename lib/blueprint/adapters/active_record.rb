@@ -84,6 +84,7 @@ module Blueprint
           include Blueprint::Model
 
           @association = association
+          @join_table  = association.join_table
 
           blueprint(adapter: :has_and_belongs_to_many, id: false, timestamps: false) do
             integer association.foreign_key
@@ -92,11 +93,11 @@ module Blueprint
 
           class << self
             def name
-              "#{@association.join_table}_habtm_model"
+              "#{@join_table}_habtm_model"
             end
 
             def table_name
-              @association.join_table
+              @join_table
             end
 
             def table_exists?
@@ -105,6 +106,7 @@ module Blueprint
           end
         end
       end
+      alias_method :habtm, :has_and_belongs_to_many
 
       def migration(name)
         self.class.migration(name, [changes_tree])
