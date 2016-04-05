@@ -4,6 +4,10 @@ module Blueprint
       require 'blueprint/adapters/active_record/migration'
       require 'blueprint/adapters/active_record/has_and_belongs_to_many'
 
+      BELONGS_TO_OPTIONS = [:class_name, :anonymous_class, :foreign_key, :validate, :autosave,
+                            :dependent, :primary_key, :inverse_of, :required, :foreign_type,
+                            :polymorphic, :touch, :counter_cache]
+
       class << self
         def applicable?(model)
           return false unless defined?(::ActiveRecord)
@@ -144,7 +148,7 @@ module Blueprint
 
       def references(name, **options)
         super
-        model.send :belongs_to, name.to_sym, **options
+        model.send :belongs_to, name.to_sym, **options.slice(*BELONGS_TO_OPTIONS)
       end
 
       def table_exists?
