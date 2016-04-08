@@ -10,6 +10,11 @@ module Blueprint
         @_blueprint.instance_eval(&block)
       end
       alias_method :schema, :blueprint
+
+      def inherited(base)
+        Blueprint.models += [base]
+        super
+      end
     end
 
     def self.included(model)
