@@ -13,9 +13,13 @@ module Blueprint
       self.attributes            = Attributes.new
     end
 
-    def explanation(index = 1)
+    def explanation(index = 1, width = 100)
       return unless changes?
-      Terminal::Table.new(Explanation.apply(self, index))
+      table = Terminal::Table.new(Explanation.apply(self, index, width: width))
+      table.render
+      table
+    rescue => e
+      explanation(index, width + 10)
     end
 
     def changes_tree

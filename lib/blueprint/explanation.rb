@@ -1,8 +1,8 @@
 module Blueprint
   module Explanation
     class << self
-      def apply(blueprint, index)
-        @table     = { title: "#{index}. ", rows: [], style: { width: 100 } }
+      def apply(blueprint, index, width: 100)
+        @table     = { title: "#{index}. ", rows: [], style: { width: width } }
         @blueprint = blueprint
         transformer.new.apply(blueprint.changes_tree)
         @table
