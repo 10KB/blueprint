@@ -44,7 +44,7 @@ module Blueprint
       end
 
       def initialize(model, id: true, timestamps: true, **_options)
-        super(model)
+        super(model, id: true, timestamps: true, **_options)
 
         @has_id         = id
         @has_timestamps = timestamps

@@ -1,6 +1,6 @@
 module Blueprint
   class Base
-    attr_accessor :model, :attributes
+    attr_accessor :model, :attributes, :configs, :options
 
     class << self
       def applicable?(_)
@@ -10,7 +10,14 @@ module Blueprint
 
     def initialize(model, **_options)
       self.model                 = model
+      self.options               = _options
       self.attributes            = Attributes.new
+      self.configs               = []
+    end
+
+    def execute(&block)
+      self.configs << block
+      instance_eval(&block)
     end
 
     def explanation(index = 1, width = 100)
@@ -42,8 +49,21 @@ module Blueprint
       end
     end
 
+    def clone_to(model)
+      clone = ::Blueprint.new(model, **self.options)
+      self.configs.each do |config|
+        clone.execute(&config)
+      end
+      model.instance_variable_set :@_blueprint, clone
+      Blueprint.models += [model]
+    end
+
     def persisted_attributes
       Blueprint::Attributes.new
+    end
+
+    def set_model(model)
+      self.model = model
     end
 
     def table_name
