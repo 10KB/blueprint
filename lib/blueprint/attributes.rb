@@ -147,6 +147,8 @@ module Blueprint
           {name => []}
         elsif attribute.type == :has_and_belongs_to_many
           {name => [:id]}
+        elsif attribute.type == :references
+          "#{attribute.name}_id"
         else
           name
         end
