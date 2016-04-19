@@ -80,6 +80,7 @@ module Blueprint
       end
 
       def has_and_belongs_to_many(name, **options)
+        super(name, **options.merge(virtual: true))
         model.send(:has_and_belongs_to_many, name.to_sym, **options) unless model.reflect_on_association(name)
 
         association = model.reflect_on_association(name)

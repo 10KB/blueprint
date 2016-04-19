@@ -132,16 +132,24 @@ module Blueprint
     end
 
     def for_meta
-      where(::Blueprint.config.meta_attribute_options)
+      where(::Blueprint.config.meta_attribute_options).to_h.map do |key, attribute|
+        {key => attribute.to_h.slice(:label, :enum)}
+      end.inject(&:merge)
     end
 
     def for_serializer
-      self.not(private: true).keys
+      self.not(type: :references).not(private: true).keys
     end
 
     def for_permitted
       self.not(readonly: true).to_h.map do |name, attribute|
-        name
+        if attribute.array
+          {name => []}
+        elsif attribute.type == :has_and_belongs_to_many
+          {name => [:id]}
+        else
+          name
+        end
       end
     end
 
