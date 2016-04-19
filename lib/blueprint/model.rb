@@ -12,6 +12,7 @@ module Blueprint
       alias_method :schema, :blueprint
 
       def inherited(base)
+        base.instance_variable_set(:@_blueprint, @_blueprint.dup) if @_blueprint
         Blueprint.models += [base]
         super
       end
