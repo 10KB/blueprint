@@ -146,7 +146,7 @@ module Blueprint
         if attribute.array
           {name => []}
         elsif attribute.type == :has_and_belongs_to_many
-          {name => [:id]}
+          {"#{name.to_s.singularize}_ids" => []}
         elsif attribute.type == :references
           "#{attribute.name}_id"
         else
