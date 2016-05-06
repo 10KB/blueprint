@@ -8,9 +8,9 @@ module Blueprint
   require 'terminal-table'
   require 'highline'
 
+  require 'blueprint/config'
   require 'blueprint/attributes'
   require 'blueprint/base'
-  require 'blueprint/config'
   require 'blueprint/explanation'
   require 'blueprint/model'
   require 'blueprint/migrator'
@@ -64,7 +64,9 @@ module Blueprint
       end
     end
 
-    @@models = []
+    @@models  = []
+    @@plugins = {}
+
     def models=(models)
       @@models = models
     end
@@ -73,7 +75,7 @@ module Blueprint
       @@models.select  { |model| model.is_a?(Class) }
               .reject  { |model| model.respond_to?(:abstract_class) && model.abstract_class }
               .sort_by { |model| model.name || model.object_id.to_s }
-              .uniq    { |model| model.name || model.object_id.to_s }
+              .uniq    { |model| model.respond_to?(:table_name) && model.table_name || model.name || model.object_id.to_s }
     end
 
     def blueprints
@@ -82,6 +84,14 @@ module Blueprint
 
     def changed_blueprints
       blueprints.select(&:changes?)
+    end
+
+    def plugins
+      @@plugins
+    end
+
+    def register_plugin(name, constant)
+      @@plugins[name] = constant
     end
   end
 end

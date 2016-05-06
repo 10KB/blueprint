@@ -6,9 +6,17 @@ module Blueprint
       def applicable?(_)
         true
       end
+
+      def load_plugins
+        Blueprint.config.plugins.each do |plugin|
+          include Blueprint.plugins[plugin]
+        end
+      end
     end
 
     def initialize(model, **_options)
+      singleton_class.send :load_plugins
+
       self.model                 = model
       self.options               = _options
       self.attributes            = Attributes.new
@@ -39,7 +47,9 @@ module Blueprint
         end.compact
       end
 
-      { table_name: table_name, table_exists: table_exists?, attributes: attributes }
+      table_name_without_schema = table_name.split('.').last
+
+      { table_name: table_name_without_schema, table_exists: table_exists?, attributes: attributes }
     end
 
     def changes?
