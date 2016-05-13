@@ -32,6 +32,12 @@ module Blueprint
       self.class.new(persisted: @persisted, **@options, **options)
     end
 
+    def for_meta
+      ::Blueprint.config.meta_attribute_options.map do |option|
+        {option => send("meta_#{option}")}
+      end.inject(&:merge).compact
+    end
+
     def for_persisted(**config)
       return merge(config) if @persisted
       self.class.new(persisted: true, name: @options[:name], type: @options[:type], options: persisted_options, **config)
@@ -41,8 +47,19 @@ module Blueprint
       @options[name.to_sym]
     end
 
+    def meta_enum
+      return enum if enum.is_a?(Hash)
+      enum.map do |value|
+        {value => value}
+      end.inject(&:merge)
+    end
+
     def method_missing(name)
-      self[name]
+      if name.to_s.starts_with?('meta_')
+        self[name.to_s.remove(/^meta_/)]
+      else
+        self[name]
+      end
     end
   end
 
@@ -133,7 +150,7 @@ module Blueprint
 
     def for_meta
       where(::Blueprint.config.meta_attribute_options).to_h.map do |key, attribute|
-        {key => attribute.to_h.slice(:label, :enum)}
+        {key => attribute.for_meta}
       end.inject(&:merge)
     end
 
