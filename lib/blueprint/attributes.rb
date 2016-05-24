@@ -49,6 +49,7 @@ module Blueprint
 
     def meta_enum
       return enum if enum.is_a?(Hash)
+      return {} if enum.is_a?(Symbol)
       enum.map do |value|
         {value => value}
       end.inject(&:merge)
