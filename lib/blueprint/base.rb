@@ -19,7 +19,7 @@ module Blueprint
 
       self.model                 = model
       self.options               = _options
-      self.attributes            = Attributes.new
+      self.attributes            = Attributes.new(nil, model: model)
       self.configs               = []
     end
 

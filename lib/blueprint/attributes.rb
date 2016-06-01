@@ -1,6 +1,7 @@
 module Blueprint
   class Attribute
-    def initialize(persisted: nil, **options)
+    def initialize(persisted: nil, model: nil, **options)
+      @model     = model
       @options   = options
       @persisted = persisted
     end
@@ -32,9 +33,9 @@ module Blueprint
       self.class.new(persisted: @persisted, **@options, **options)
     end
 
-    def for_meta
+    def for_meta(instance)
       ::Blueprint.config.meta_attribute_options.map do |option|
-        {option => send("meta_#{option}")}
+        {option => send("meta_#{option}", instance)}
       end.inject(&:merge).compact
     end
 
@@ -47,10 +48,16 @@ module Blueprint
       @options[name.to_sym]
     end
 
-    def meta_enum
-      return enum if enum.is_a?(Hash)
-      return {} if enum.is_a?(Symbol)
-      enum.map do |value|
+    def meta_enum(instance)
+      _enum = if enum.is_a?(Symbol)
+                instance.send(enum)
+              else
+                enum
+              end
+
+      return _enum if _enum.is_a?(Hash)
+
+      _enum.map do |value|
         {value => value}
       end.inject(&:merge)
     end
@@ -65,8 +72,9 @@ module Blueprint
   end
 
   class AttributeScope
-    def initialize(scope)
+    def initialize(scope, model: nil)
       @scope   = scope
+      @model   = model
       @selects = []
       @rejects = []
     end
@@ -75,14 +83,14 @@ module Blueprint
       @selects << proc do |_, attribute|
         attribute.has?(*keys, **conditions)
       end
-      Attributes.new(filter)
+      Attributes.new(filter, model: @model)
     end
 
     def not(*keys, **conditions)
       @rejects << proc do |_, attribute|
         attribute.has?(*keys, **conditions)
       end
-      Attributes.new(filter)
+      Attributes.new(filter, model: @model)
     end
 
     def filter
@@ -95,13 +103,14 @@ module Blueprint
   end
 
   class Attributes
-    def initialize(attributes = nil)
+    def initialize(attributes = nil, model: nil)
       attributes  = Hash[attributes] if attributes.is_a?(Array)
       @attributes = attributes || {}
+      @model      = model
     end
 
     def add(name:, type:, **options)
-      @attributes[name.to_sym] = Attribute.new(name: name.to_sym, type: type.to_sym, **options)
+      @attributes[name.to_sym] = Attribute.new(name: name.to_sym, type: type.to_sym, model: @model, **options)
     end
 
     def as_json(*args)
@@ -112,18 +121,18 @@ module Blueprint
       # TODO: Clean up
       added   = diff.slice(*(diff.keys - keys))
       changed = diff.to_diff_a(type) - to_diff_a(type) - added.to_diff_a(type)
-      changed = Attributes.new(Hash[changed].map { |key, options| { key => Attribute.new(persisted: true, **options) } }.inject(&:merge))
+      changed = Attributes.new(Hash[changed].map { |key, options| { key => Attribute.new(persisted: true, model: @model, **options) } }.inject(&:merge), model: @model)
       removed = slice(*(keys - diff.keys))
 
       { added: added, changed: changed, removed: removed }
     end
 
     def where(*keys, **conditions)
-      AttributeScope.new(@attributes).where(*keys, **conditions)
+      AttributeScope.new(@attributes, model: @model).where(*keys, **conditions)
     end
 
     def not(*keys, **conditions)
-      AttributeScope.new(@attributes).not(*keys, **conditions)
+      AttributeScope.new(@attributes, model: @model).not(*keys, **conditions)
     end
 
     def keys
@@ -149,9 +158,9 @@ module Blueprint
       self
     end
 
-    def for_meta
+    def for_meta(instance)
       where(::Blueprint.config.meta_attribute_options).to_h.map do |key, attribute|
-        {key => attribute.for_meta}
+        {key => attribute.for_meta(instance)}
       end.inject(&:merge)
     end
 
