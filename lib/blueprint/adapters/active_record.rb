@@ -153,8 +153,8 @@ module Blueprint
       end
 
       def table_exists?
-        ::ActiveRecord::Base.connection.schema_cache.clear!
-        ::ActiveRecord::Base.connection.table_exists?(table_name)
+        model.connection.schema_cache.clear!
+        model.connection.table_exists?(table_name)
       end
 
       def method_missing(type, name, **options)

@@ -75,6 +75,7 @@ module Blueprint
       @@models.select  { |model| model.is_a?(Class) }
               .reject  { |model| model.respond_to?(:abstract_class) && model.abstract_class }
               .sort_by { |model| model.name || model.object_id.to_s }
+              .sort    { |a, b|  -1 * (a <=> b).to_i }
               .uniq    { |model| model.respond_to?(:table_name) && model.table_name || model.name || model.object_id.to_s }
     end
 
