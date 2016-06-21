@@ -6,7 +6,7 @@ module Blueprint
 
       BELONGS_TO_OPTIONS = [:class_name, :anonymous_class, :foreign_key, :validate, :autosave,
                             :dependent, :primary_key, :inverse_of, :required, :foreign_type,
-                            :polymorphic, :touch, :counter_cache]
+                            :polymorphic, :touch, :counter_cache, :cached]
 
       class << self
         def applicable?(model)
