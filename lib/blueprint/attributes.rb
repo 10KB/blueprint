@@ -105,7 +105,7 @@ module Blueprint
   class Attributes
     def initialize(attributes = nil, model: nil)
       attributes  = Hash[attributes] if attributes.is_a?(Array)
-      @attributes = attributes || {}
+      @attributes = (attributes || {}).dup
       @model      = model
     end
 
@@ -152,10 +152,11 @@ module Blueprint
     end
 
     def for_persisted
-      @attributes.each do |name, attribute|
-        @attributes[name] = attribute.for_persisted
+      persisted_scope = self.not(virtual: true)
+      persisted_scope.to_h.each do |name, attribute|
+        persisted_scope.to_h[name] = attribute.for_persisted
       end
-      self
+      persisted_scope
     end
 
     def for_meta(instance)
