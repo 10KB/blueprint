@@ -53,6 +53,11 @@ module Blueprint
         @attributes.add(name: :updated_at, type: :datetime)     if timestamps
       end
 
+      def accessor(name, options)
+        @attributes.add(name: name, type: :accessor, virtual: true, **options)
+        model.send :attr_accessor, name
+      end
+
       def changes_tree
         changes_tree = super
 
