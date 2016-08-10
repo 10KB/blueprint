@@ -170,7 +170,7 @@ module Blueprint
     end
 
     def for_permitted
-      self.not(readonly: true).to_h.map do |name, attribute|
+      self.not(readonly: true).not(name: [:updated_at, :created_at]).to_h.map do |name, attribute|
         if attribute.array
           {name => []}
         elsif attribute.type == :has_and_belongs_to_many
