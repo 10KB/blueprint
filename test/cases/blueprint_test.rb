@@ -117,4 +117,9 @@ class BlueprintModelTest < ActiveSupport::TestCase
 
     assert_instance_of ::Blueprint::Base, model.blueprint
   end
+
+  def teardown
+    Blueprint.models = []
+    Blueprint::Migrator.eager_load!
+  end
 end

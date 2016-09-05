@@ -1,16 +1,17 @@
 # Blueprint
+by [10KB](https://10kb.nl)
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/blueprint`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Blueprint keeps track of the attributes of your models. It:
+* Generates migrations for you if you update your model's blueprint (only ActiveRecord at the moment)
+* Provides you with helpers to use in your serializers or permitted attributes definition
+* Can be extended with plugins
+* Has support for inheritance and composition
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-```ruby
-gem 'blueprint'
-```
+    gem 'blueprint'
 
 And then execute:
 
@@ -22,18 +23,67 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+1. Add Blueprint to your model
 
-## Development
+```ruby
+class Car
+  include Blueprint::Model
+end
+```
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/console` for an interactive prompt that will allow you to experiment.
+Alternatively, in an ActiveRecord model you could also use `has_blueprint`.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release` to create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```ruby
+class Car < ActiveRecord::Base
+  has_blueprint
+end
+```
 
-## Contributing
+2. Add some attributes to your blueprint definition
 
-1. Fork it ( https://github.com/[my-github-username]/blueprint/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+```ruby
+class Car < ActiveRecord::Base
+  include Blueprint::Model
+
+  blueprint do
+    string  :brand, default: 'BMW'
+    string  :name
+    text    :description
+    decimal :price, precision: 5, scale: 10
+  end
+end
+```
+
+3. Let Blueprint generate a migration to update your database for you. Run:
+
+```
+rake blueprint:migrate
+```
+
+Blueprint will check all your models for changes and list them in your terminal. If multiple models have changes it will ask you if you want to apply these changes in one or separate migrations.
+
+```
+Blueprint has detected 1 changes to your models.
++----------------------------+------------------------+--------------------------------------------+
+|                                    1. Create a new table cars                                    |
++----------------------------+------------------------+--------------------------------------------+
+| name                       | type                   | options                                    |
++----------------------------+------------------------+--------------------------------------------+
+| brand                      | string                 | {:default=>"BMW"}                          |
+| name                       | string                 | {}                                         |
+| description                | text                   | {}                                         |
+| price                      | decimal                | {:precision=>10, :scale=>5}                |
+| timestamps                 |                        |                                            |
++----------------------------+------------------------+--------------------------------------------+
+Migrations:
+1. In one migration
+2. In separate migrations
+How would you like to process these changes?
+1
+How would you like to name this migration?
+Create cars
+== 20160905153022 CreateCars: migrating =======================================
+-- create_table(:cars)
+   -> 0.0081s
+== 20160905153022 CreateCars: migrated (0.0082s) ==============================
+```

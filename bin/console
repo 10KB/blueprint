@@ -6,9 +6,15 @@ require 'active_support/testing/autorun'
 
 require 'active_record'
 ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:"
-require 'schema'
-
 require 'blueprint'
+
+if ENV['ENV'] == 'test'
+  test = File.expand_path('../../test', __FILE__)
+  $LOAD_PATH.unshift(test) unless $LOAD_PATH.include?(test)
+  require 'schema'
+  require 'models/user'
+  require 'models/car'
+end
 
 Blueprint.config do |c|
   c.eager_load       = true

@@ -18,6 +18,8 @@ class MigratorTest < ActiveSupport::TestCase
     Object.send :remove_const, :Car
     Object.send :remove_const, :User
 
+    Blueprint.models = []
+
     assert_raises(NameError) { Car }
     assert_raises(NameError) { User }
 

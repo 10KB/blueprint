@@ -43,4 +43,9 @@ class ChangesTreeTest < ActiveSupport::TestCase
     ]
     assert_equal({ table_name: 'persons', table_exists: true, attributes: attributes }, changes_tree)
   end
+
+  def teardown
+    Blueprint.models = []
+    Blueprint::Migrator.eager_load!
+  end
 end

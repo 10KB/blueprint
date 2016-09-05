@@ -183,7 +183,7 @@ module Blueprint
 
       def find_association_by_foreign_type(column)
         model.reflect_on_all_associations.find do |association|
-             association.polymorphic? && association.foreign_type.to_s == column.name.to_s
+          association.polymorphic? && association.foreign_type.to_s == column.name.to_s
         end
       end
     end
