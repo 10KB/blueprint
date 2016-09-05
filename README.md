@@ -24,7 +24,7 @@ Or install it yourself as:
 
 ## Usage
 
-1. Add Blueprint to your model
+### 1. Add Blueprint to your model
 
 ```ruby
 class Car
@@ -40,7 +40,7 @@ class Car < ActiveRecord::Base
 end
 ```
 
-2. Add some attributes to your blueprint definition
+### 2. Add some attributes
 
 ```ruby
 class Car < ActiveRecord::Base
@@ -55,7 +55,8 @@ class Car < ActiveRecord::Base
 end
 ```
 
-3. Let Blueprint generate a migration to update your database schema for you (only ActiveRecord at the moment). Run:
+### 3. Generate a migration
+Let Blueprint generate a migration to update your database schema for you (only ActiveRecord at the moment). Run:
 
 ```
 rake blueprint:migrate
@@ -80,21 +81,15 @@ Migrations:
 1. In one migration
 2. In separate migrations
 How would you like to process these changes?
->
-```
-
-Choose `1`
-
-```
+> 1
 How would you like to name this migration?
->
+> Create cars
 ```
-
-Choose a name, for example: `Create cars`
-
-Blueprint will then create your migration `db/migrate/*********_create_cars.rb`:
+Your migration wil be **created** and **migrated**.
 
 ```ruby
+# db/migrate/*********_create_cars.rb
+
 class CreateCars < ActiveRecord::Migration
   def change
     create_table :cars do |t|
@@ -108,8 +103,6 @@ class CreateCars < ActiveRecord::Migration
 end
 ```
 
-And run `db:migrate` for you:
-
 ```
 == 20160905153022 CreateCars: migrating =======================================
 -- create_table(:cars)
@@ -117,7 +110,8 @@ And run `db:migrate` for you:
 == 20160905153022 CreateCars: migrated (0.0082s) ==============================
 ```
 
-4. Now let's make some changes to our `Car` model and run `blueprint:migrate` again.
+### 4. Make some changes to your model
+If we make some changes to our `Car` model and run `blueprint:migrate` again, Blueprint will detect these changes and create a migration to update your table.
 
 ```ruby
 class Car < ActiveRecord::Base
@@ -160,7 +154,7 @@ Add color change default brand and remove description for cars
 ## Adapters
 Blueprint is made to be persistence layer agnostic, but at this moment only an ActiveRecord adapter is implemented. If you would like to implement an adapter for another persistence layer please contact us. We'd love to help you.
 
-An example of an Blueprint adapter:
+An example of a Blueprint adapter:
 ```ruby
 module Blueprint
   module Adapters
