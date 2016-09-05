@@ -1,5 +1,5 @@
-namespace :blueprint do
+namespace :whiteprint do
   task migrate: :environment do
-    Blueprint::Migrator.interactive
+    Whiteprint::Migrator.interactive
   end
 end

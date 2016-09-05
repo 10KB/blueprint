@@ -2,9 +2,9 @@ require 'test_helper'
 
 class AttributesTest < ActiveSupport::TestCase
   def setup
-    @attribute  = Blueprint::Attribute.new type: :integer, default: 10
+    @attribute  = Whiteprint::Attribute.new type: :integer, default: 10
 
-    @attributes = Blueprint::Attributes.new
+    @attributes = Whiteprint::Attributes.new
 
     @attributes.add name: 'name',           type: :string,  default: 'John'
     @attributes.add name: 'age',            type: :integer
@@ -47,7 +47,7 @@ class AttributesTest < ActiveSupport::TestCase
     assert_equal @attributes.to_h.slice(:age, :date_of_birth), diff[:removed].to_h
     assert_equal({},                                           diff[:changed].to_h)
 
-    diff_attributes = Blueprint::Attributes.new
+    diff_attributes = Whiteprint::Attributes.new
 
     diff_attributes.add name: 'name',           type: :string,  default: 'Joe'
     diff_attributes.add name: 'weight',         type: :integer

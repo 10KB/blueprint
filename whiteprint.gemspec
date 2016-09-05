@@ -5,11 +5,11 @@ $LOAD_PATH.unshift(lib)  unless $LOAD_PATH.include?(lib)
 test = File.expand_path('../test', __FILE__)
 $LOAD_PATH.unshift(test) unless $LOAD_PATH.include?(test)
 
-require 'blueprint/version'
+require 'whiteprint/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'blueprint'
-  spec.version       = Blueprint::VERSION
+  spec.name          = 'whiteprint'
+  spec.version       = Whiteprint::VERSION
   spec.authors       = [
     'Ewout Kleinsmann',
     'Roland Boon'
@@ -19,8 +19,8 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'Define attributes within models for automatic migration generators, schema composition and more'
   spec.description   = <<-DESC
-    Blueprint allows you to define attributes within your models. This definition allows for
-    automatic migration generation. You can also use blueprint for inheritance and composition
+    Whiteprint allows you to define attributes within your models. This definition allows for
+    automatic migration generation. You can also use whiteprint for inheritance and composition
     of your model's attributes.
   DESC
   spec.license       = 'MIT'

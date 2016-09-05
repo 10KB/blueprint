@@ -1,4 +1,4 @@
-module Blueprint
+module Whiteprint
   class Base
     attr_accessor :model, :attributes, :configs, :options
 
@@ -8,8 +8,8 @@ module Blueprint
       end
 
       def load_plugins
-        Blueprint.config.plugins.each do |plugin|
-          include Blueprint.plugins[plugin]
+        Whiteprint.config.plugins.each do |plugin|
+          include Whiteprint.plugins[plugin]
         end
       end
     end
@@ -60,16 +60,16 @@ module Blueprint
     end
 
     def clone_to(model)
-      clone = ::Blueprint.new(model, **self.options)
+      clone = ::Whiteprint.new(model, **self.options)
       self.configs.each do |config|
         clone.execute(&config)
       end
-      model.instance_variable_set :@_blueprint, clone
-      Blueprint.models += [model]
+      model.instance_variable_set :@_whiteprint, clone
+      Whiteprint.models += [model]
     end
 
     def persisted_attributes
-      Blueprint::Attributes.new
+      Whiteprint::Attributes.new
     end
 
     def set_model(model)

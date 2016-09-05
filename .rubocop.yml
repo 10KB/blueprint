@@ -11,7 +11,7 @@ Style/SpaceAroundOperators:
 
 Style/PredicateName:
   NameWhitelist:
-    - has_blueprint
+    - has_whiteprint
 
 Metrics/LineLength:
   Description: 'Limit lines to 80 characters.'

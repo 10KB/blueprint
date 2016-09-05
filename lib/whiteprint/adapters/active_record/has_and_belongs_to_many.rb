@@ -1,4 +1,4 @@
-module Blueprint
+module Whiteprint
   module Adapters
     class ActiveRecord::HasAndBelongsToMany < ActiveRecord
       def self.applicable?(_)

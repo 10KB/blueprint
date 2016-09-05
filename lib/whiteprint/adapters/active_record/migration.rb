@@ -1,6 +1,6 @@
-module Blueprint
+module Whiteprint
   module Adapters
-    class ActiveRecord::Migration < Blueprint::Transform
+    class ActiveRecord::Migration < Whiteprint::Transform
       create_rule :removed_default, kind: :removed_default, name: simple(:name)
 
       create_table            { "    create_table :#{table_name} do |t|\n#{attributes.join("\n")}\n    end\n" }

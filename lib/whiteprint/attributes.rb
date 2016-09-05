@@ -1,4 +1,4 @@
-module Blueprint
+module Whiteprint
   class Attribute
     def initialize(persisted: nil, model: nil, **options)
       @model     = model
@@ -20,7 +20,7 @@ module Blueprint
 
     def persisted_options
       @options.select do |key, value|
-        Blueprint.config.persisted_attribute_options.keys.include?(key) &&
+        Whiteprint.config.persisted_attribute_options.keys.include?(key) &&
         !(key == :default && value.is_a?(Symbol))
       end
     end
@@ -34,7 +34,7 @@ module Blueprint
     end
 
     def for_meta(instance)
-      ::Blueprint.config.meta_attribute_options.map do |option|
+      ::Whiteprint.config.meta_attribute_options.map do |option|
         {option => send("meta_#{option}", instance)}
       end.inject(&:merge).compact
     end
@@ -160,7 +160,7 @@ module Blueprint
     end
 
     def for_meta(instance)
-      where(::Blueprint.config.meta_attribute_options).to_h.map do |key, attribute|
+      where(::Whiteprint.config.meta_attribute_options).to_h.map do |key, attribute|
         {key => attribute.for_meta(instance)}
       end.inject(&:merge)
     end

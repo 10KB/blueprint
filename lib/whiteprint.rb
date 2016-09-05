@@ -1,6 +1,6 @@
-require 'blueprint/version'
+require 'whiteprint/version'
 
-module Blueprint
+module Whiteprint
   require 'active_support/concern' unless defined?(ActiveSupport)
   require 'active_support/inflections'
 
@@ -8,13 +8,13 @@ module Blueprint
   require 'terminal-table'
   require 'highline'
 
-  require 'blueprint/config'
-  require 'blueprint/attributes'
-  require 'blueprint/base'
-  require 'blueprint/explanation'
-  require 'blueprint/model'
-  require 'blueprint/migrator'
-  require 'blueprint/transform'
+  require 'whiteprint/config'
+  require 'whiteprint/attributes'
+  require 'whiteprint/base'
+  require 'whiteprint/explanation'
+  require 'whiteprint/model'
+  require 'whiteprint/migrator'
+  require 'whiteprint/transform'
 
   config do |c|
     c.default_adapter             = :base
@@ -33,16 +33,16 @@ module Blueprint
   end
 
   if defined?(ActiveRecord)
-    require 'blueprint/has_blueprint'
+    require 'whiteprint/has_whiteprint'
     ActiveSupport.on_load :active_record do
-      ActiveRecord::Base.send :extend, Blueprint::HasBlueprint
+      ActiveRecord::Base.send :extend, Whiteprint::HasWhiteprint
     end
   end
 
-  require 'blueprint/railtie' if defined?(Rails)
+  require 'whiteprint/railtie' if defined?(Rails)
 
-  require 'blueprint/adapters/active_record'
-  require 'blueprint/adapters/test'
+  require 'whiteprint/adapters/active_record'
+  require 'whiteprint/adapters/test'
 
   ADAPTERS = {
     active_record:            Adapters::ActiveRecord,
@@ -56,8 +56,8 @@ module Blueprint
       if adapter
         ADAPTERS[adapter].new(model, **options)
       else
-        adapter = ADAPTERS.find do |_, blueprint|
-          blueprint.applicable?(model)
+        adapter = ADAPTERS.find do |_, whiteprint|
+          whiteprint.applicable?(model)
         end
 
         adapter[-1].new(model, **options)
@@ -80,12 +80,12 @@ module Blueprint
               .sort_by { |model| model.name || model.object_id.to_s }
     end
 
-    def blueprints
-      models.map(&:blueprint).compact
+    def whiteprints
+      models.map(&:whiteprint).compact
     end
 
-    def changed_blueprints
-      blueprints.select(&:changes?)
+    def changed_whiteprints
+      whiteprints.select(&:changes?)
     end
 
     def plugins

@@ -1,4 +1,4 @@
-module Blueprint
+module Whiteprint
   class Transform < Parslet::Transform
     class << self
       def create_rule(name, **expression)

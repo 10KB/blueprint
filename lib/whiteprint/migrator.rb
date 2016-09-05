@@ -1,12 +1,12 @@
-module Blueprint
+module Whiteprint
   module Migrator
     class << self
       def eager_load!
-        return unless Blueprint.config.eager_load
+        return unless Whiteprint.config.eager_load
 
         Rails.application.eager_load! if defined?(Rails)
 
-        [*Blueprint.config.eager_load_paths.uniq].each do |path|
+        [*Whiteprint.config.eager_load_paths.uniq].each do |path|
           Gem.find_files(path).each do |file|
             load file
           end
@@ -14,8 +14,8 @@ module Blueprint
       end
 
       def explanations
-        Blueprint.changed_blueprints.map.with_index do |blueprint, index|
-          blueprint.explanation(index + 1)
+        Whiteprint.changed_whiteprints.map.with_index do |whiteprint, index|
+          whiteprint.explanation(index + 1)
         end
       end
 
@@ -26,11 +26,11 @@ module Blueprint
         cli = HighLine.new input, output
 
         if number_of_changes == 0
-          cli.say('Blueprint detected no changes')
+          cli.say('Whiteprint detected no changes')
           return
         end
 
-        cli.say "Blueprint has detected <%= color('#{number_of_changes}', :bold, :blue) %> changes to your models."
+        cli.say "Whiteprint has detected <%= color('#{number_of_changes}', :bold, :white) %> changes to your models."
         explanations.each do |explanation|
           cli.say explanation
         end
@@ -48,10 +48,10 @@ module Blueprint
 
         cli = HighLine.new input, output
         name = cli.ask 'How would you like to name this migration?'
-        Blueprint.changed_blueprints
+        Whiteprint.changed_whiteprints
                  .group_by(&:transformer)
-                 .map do |adapter, blueprints|
-                   adapter.generate_migration(name, blueprints.map(&:changes_tree))
+                 .map do |adapter, whiteprints|
+                   adapter.generate_migration(name, whiteprints.map(&:changes_tree))
                  end
 
         ActiveRecord::Migration.verbose = true
@@ -59,7 +59,7 @@ module Blueprint
       end
 
       def number_of_changes
-        Blueprint.changed_blueprints.size
+        Whiteprint.changed_whiteprints.size
       end
     end
   end

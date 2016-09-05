@@ -3,9 +3,9 @@ require 'test_helper'
 class ChangesTreeTest < ActiveSupport::TestCase
   def setup
     @model = Class.new do
-      include Blueprint::Model
+      include Whiteprint::Model
 
-      blueprint(adapter: :test) do
+      whiteprint(adapter: :test) do
         string  :name,  default: 'John'
         integer :age,   default: 0
         date    :date_of_birth
@@ -28,13 +28,13 @@ class ChangesTreeTest < ActiveSupport::TestCase
   end
 
   test 'the test adapter can set its persisted attributes with a block' do
-    assert_equal Blueprint::Attribute.new(name: :name, type: :string),             @model.blueprint.persisted_attributes.name
-    assert_equal Blueprint::Attribute.new(name: :age, type: :integer, default: 0), @model.blueprint.persisted_attributes.age
-    assert_equal Blueprint::Attribute.new(name: :weight, type: :integer),          @model.blueprint.persisted_attributes.weight
+    assert_equal Whiteprint::Attribute.new(name: :name, type: :string),             @model.whiteprint.persisted_attributes.name
+    assert_equal Whiteprint::Attribute.new(name: :age, type: :integer, default: 0), @model.whiteprint.persisted_attributes.age
+    assert_equal Whiteprint::Attribute.new(name: :weight, type: :integer),          @model.whiteprint.persisted_attributes.weight
   end
 
-  test 'a blueprint can generate a changes_tree with all the differences between the persisted attributes and the actual attributes' do
-    changes_tree = @model.blueprint.changes_tree
+  test 'a whiteprint can generate a changes_tree with all the differences between the persisted attributes and the actual attributes' do
+    changes_tree = @model.whiteprint.changes_tree
 
     attributes = [
       { name: :date_of_birth, type: :date, options: {}, kind: :added },
@@ -45,7 +45,7 @@ class ChangesTreeTest < ActiveSupport::TestCase
   end
 
   def teardown
-    Blueprint.models = []
-    Blueprint::Migrator.eager_load!
+    Whiteprint.models = []
+    Whiteprint::Migrator.eager_load!
   end
 end

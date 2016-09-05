@@ -1,8 +1,8 @@
-module Blueprint
+module Whiteprint
   module Adapters
-    class ActiveRecord < ::Blueprint::Base
-      require 'blueprint/adapters/active_record/migration'
-      require 'blueprint/adapters/active_record/has_and_belongs_to_many'
+    class ActiveRecord < ::Whiteprint::Base
+      require 'whiteprint/adapters/active_record/migration'
+      require 'whiteprint/adapters/active_record/has_and_belongs_to_many'
 
       BELONGS_TO_OPTIONS = [:class_name, :anonymous_class, :foreign_key, :validate, :autosave,
                             :dependent, :primary_key, :inverse_of, :required, :foreign_type,
@@ -27,7 +27,7 @@ module Blueprint
 
         def generate_migration(name, trees)
           filename = "#{Time.now.strftime('%Y%m%d%H%M%S')}_#{underscore(name)}.rb"
-          File.open(File.join(Blueprint.config.migration_path, filename), 'w') do |f|
+          File.open(File.join(Whiteprint.config.migration_path, filename), 'w') do |f|
             f.write migration(name, trees)
           end
         end
@@ -92,12 +92,12 @@ module Blueprint
         association = model.reflect_on_association(name)
 
         Class.new do
-          include Blueprint::Model
+          include Whiteprint::Model
 
           @association = association
           @join_table  = association.join_table
 
-          blueprint(adapter: :has_and_belongs_to_many, id: false, timestamps: false) do
+          whiteprint(adapter: :has_and_belongs_to_many, id: false, timestamps: false) do
             integer association.foreign_key
             integer association.association_foreign_key
           end
@@ -124,7 +124,7 @@ module Blueprint
       end
 
       def options_from_column(column)
-        [:name, :type, *Blueprint.config.persisted_attribute_options.keys].map do |option|
+        [:name, :type, *Whiteprint.config.persisted_attribute_options.keys].map do |option|
           association_by_foreign_key = find_association_by_foreign_key(column)
           overridden_name            = association_by_foreign_key && association_by_foreign_key.name || column.name
           current_attribute          = attributes[overridden_name]
@@ -137,13 +137,13 @@ module Blueprint
 
           value = column.send(option)
           value = column.type_cast_from_database(value) if option == :default
-          next if value == Blueprint.config.persisted_attribute_options[option]
+          next if value == Whiteprint.config.persisted_attribute_options[option]
           { option => value }
         end.compact.inject(&:merge)
       end
 
       def persisted_attributes
-        attributes = Blueprint::Attributes.new
+        attributes = Whiteprint::Attributes.new
         return attributes unless table_exists?
         model.columns.each do |column|
           next if find_association_by_foreign_type(column)

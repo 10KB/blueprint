@@ -1,4 +1,4 @@
-module Blueprint
+module Whiteprint
   def self.config(&block)
     return Config unless block
     Config.instance_exec(Config, &block)

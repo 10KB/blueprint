@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class ExplanationTest < ActiveSupport::TestCase
-  test 'the changes blueprint is about to process can be visualized in a table' do
+  test 'the changes whiteprint is about to process can be visualized in a table' do
     user_explanation = <<-TXT.sub(/\n$/, '')
 +--------+---------------+---------+------------------+-------------------+------------------------+
 |                                     1. Make changes to users                                     |
@@ -26,7 +26,7 @@ TXT
 +---------------------------+------------------------+---------------------------------------------+
     TXT
 
-    assert_equal user_explanation, User.blueprint.explanation.to_s
-    assert_equal car_explanation,  Car.blueprint.explanation.to_s
+    assert_equal user_explanation, User.whiteprint.explanation.to_s
+    assert_equal car_explanation,  Car.whiteprint.explanation.to_s
   end
 end

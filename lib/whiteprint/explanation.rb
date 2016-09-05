@@ -1,10 +1,10 @@
-module Blueprint
+module Whiteprint
   module Explanation
     class << self
-      def apply(blueprint, index, width: 100)
+      def apply(whiteprint, index, width: 100)
         @table     = { title: "#{index}. ", rows: [], style: { width: width } }
-        @blueprint = blueprint
-        transformer.new.apply(blueprint.changes_tree)
+        @whiteprint = whiteprint
+        transformer.new.apply(whiteprint.changes_tree)
         @table
       end
 
@@ -12,14 +12,14 @@ module Blueprint
 
       def helpers
         type_was = lambda do |name|
-          @blueprint.persisted_attributes[name][:type].to_s
+          @whiteprint.persisted_attributes[name][:type].to_s
         end
 
         options_was = lambda do |name|
-          @blueprint.persisted_attributes[name][:options].to_s
+          @whiteprint.persisted_attributes[name][:options].to_s
         end
 
-        table_exists = @blueprint.changes_tree[:table_exists]
+        table_exists = @whiteprint.changes_tree[:table_exists]
 
         [type_was, options_was, table_exists]
       end
@@ -27,7 +27,7 @@ module Blueprint
       def transformer
         table, type_was, options_was, table_exists = @table, *helpers
 
-        Class.new(Blueprint::Transform) do
+        Class.new(Whiteprint::Transform) do
           create_table do
             table[:headings]  = %w(name type options)
             table[:title]    += "Create a new table #{table_name}"

@@ -1,7 +1,7 @@
 class User < ActiveRecord::Base
-  include Blueprint::Model
+  include Whiteprint::Model
 
-  blueprint do
+  whiteprint do
     string  :name,          default: 'Joe'
     integer :age,           default: 10
   end
