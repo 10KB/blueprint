@@ -239,5 +239,13 @@ end
 
 `habtm` is added as an alias
 
+### Method as default value
+
+### Accessor
+
+## Attributes
+
+## Configuration
+
 ## Origin
 Blueprint is extracted from an application framework we use internally. Right now, our framework is lacking tests and documentation, but we intend to open source more parts of our framework in the future.
