@@ -158,3 +158,92 @@ Add color change default brand and remove description for cars
 ```
 
 ## Adapters
+Blueprint is made to be persistence layer agnostic, but at this moment only an ActiveRecord adapter is implemented. If you would like to implement an adapter for another persistence layer please contact us. We'd love to help you.
+
+An example of an Blueprint adapter:
+```ruby
+module Blueprint
+  module Adapters
+    class MyOwnAdapater < ::Blueprint::Base
+      class << self
+        def applicable?(model)
+          # method used to automatically select an adapter for a model.
+          # for example:
+          model < MyOrm::Base
+        end
+
+        def generate_migration(name, trees)
+          # create a migration here given a set of trees with changes
+          # look at the activerecord adapter for further implementation details
+        end
+      end
+
+      def persisted_attributes
+        # this method has to return the current attributes of the persistance layer
+        # return an instance of Blueprint::Attributes
+      end
+
+      # The blueprint do ... end block in your model is executed in the context of your adapter instance
+      # you can add methods to add functionality to your adapter. For example:
+      def address(name)
+        @attributes.add name: "#{name}_street",       type: :text
+        @attributes.add name: "#{name}_house_number", type: :integer
+        @attributes.add name: "#{name}_city",         type: :text
+      end
+      # And then you could do:
+      # class Company < MyOrm::Base
+      #   include Blueprint::Model
+      #
+      #   blueprint do
+      #     address :office
+      #   end
+      # end
+    end
+  end
+end
+```
+
+## ActiveRecord Adapter
+The ActiveRecord adapter has some special properties which are explained in this section.
+
+### Default id and timestamps
+By default the adapter will add id and timestamps columns. You can disable this behaviour by passing arguments to the blueprint method.
+
+Model without an id:
+```ruby
+blueprint(id: false) do
+  # ...
+end
+```
+
+Model without timestamps:
+```ruby
+blueprint(timestamps: false) do
+  # ...
+end
+```
+
+### References
+Adding an references columns will automatically set a `belongs_to` association on the model. Any options for the association can be passed in the blueprint block.
+
+```ruby
+blueprint do
+  references :fileable, polymorphic: true
+end
+```
+
+You can disable this behaviour by passing `auto_belongs_to: false` to the blueprint method.
+
+### Has and belongs to many
+The activerecord adapter has support for a has_and_belongs_to_many attribute. This won't add a column to your model's table, but instead create a join table and set the association.
+
+```ruby
+blueprint do
+  has_and_belongs_to_many :categories
+end
+```
+
+`habtm` is added as an alias
+
+## Origin
+Blueprint is extracted from an application framework we use internally. Right now, our framework is lacking tests and documentation, but we intend to open source more parts of our framework in the future.

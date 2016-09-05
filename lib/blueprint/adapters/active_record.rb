@@ -43,11 +43,12 @@ module Blueprint
         end
       end
 
-      def initialize(model, id: true, timestamps: true, **_options)
+      def initialize(model, id: true, timestamps: true, auto_belongs_to: true, **_options)
         super(model, id: true, timestamps: true, **_options)
 
-        @has_id         = id
-        @has_timestamps = timestamps
+        @has_id          = id
+        @has_timestamps  = timestamps
+        @auto_belongs_to = auto_belongs_to
         @attributes.add(name: :id, type: :integer, null: false) if id
         @attributes.add(name: :created_at, type: :datetime)     if timestamps
         @attributes.add(name: :updated_at, type: :datetime)     if timestamps
@@ -154,6 +155,7 @@ module Blueprint
 
       def references(name, **options)
         super
+        return unless @auto_belongs_to
         model.send :belongs_to, name.to_sym, **options.slice(*BELONGS_TO_OPTIONS)
       end
 
