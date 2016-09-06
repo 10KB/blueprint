@@ -27,13 +27,25 @@ module Whiteprint
 
         def generate_migration(name, trees)
           filename = "#{Time.now.strftime('%Y%m%d%H%M%S')}_#{underscore(name)}.rb"
-          File.open(File.join(Whiteprint.config.migration_path, filename), 'w') do |f|
+          path     = File.join(Whiteprint.config.migration_path, filename)
+          File.open(path, 'w') do |f|
             f.write migration(name, trees)
           end
+          path
+        end
+
+        def migrate
+          ::ActiveRecord::Migration.verbose = true
+          ::ActiveRecord::Migrator.migrate(::ActiveRecord::Migrator.migrations_paths)
         end
 
         def migration(name, trees)
           "class #{camelize(name)} < ActiveRecord::Migration\n  def change\n" + transform(trees) + "  end\nend\n"
+        end
+
+        def migration_params(cli)
+          name = cli.ask 'How would you like to name this migration?'
+          [name]
         end
 
         private

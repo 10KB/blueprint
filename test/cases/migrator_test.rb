@@ -50,13 +50,10 @@ end
 
     input = StringIO.new
     input << '1' << "\n"
+    input << 'test migration' << "\n"
     input.rewind
 
-    migrate_input = StringIO.new
-    migrate_input << 'test migration' << "\n"
-    migrate_input.rewind
-
-    Whiteprint::Migrator.interactive input: input, migrate_input: migrate_input
+    Whiteprint::Migrator.interactive input: input
 
     migration = File.read(Dir.glob('test/db/migrate/*_test_migration.rb').first)
 

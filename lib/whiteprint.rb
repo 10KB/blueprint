@@ -30,6 +30,8 @@ module Whiteprint
       default: nil
     }
     c.meta_attribute_options      = [:enum]
+    c.migration_strategy          = :ask
+    c.add_migration_to_git        = false
   end
 
   if defined?(ActiveRecord)
@@ -86,6 +88,25 @@ module Whiteprint
 
     def changed_whiteprints
       whiteprints.select(&:changes?)
+    end
+
+    def migrate(cli, separately:)
+      changed_whiteprints.group_by(&:transformer).map do |adapter, whiteprints|
+        if separately
+          cli.say 'Processing as separate migrations...'
+          whiteprints.each do |whiteprint|
+            cli.say whiteprint.explanation
+            migration_path = adapter.generate_migration(*adapter.migration_params(cli), [whiteprint.changes_tree])
+            `git add #{migration_path}` if Whiteprint.config.add_migration_to_git
+          end
+        else
+          cli.say 'Processing as a single migration...'
+          migration_path = adapter.generate_migration(*adapter.migration_params(cli), whiteprints.map(&:changes_tree))
+          `git add #{migration_path}` if Whiteprint.config.add_migration_to_git
+        end
+
+        adapter.migrate
+      end
     end
 
     def plugins

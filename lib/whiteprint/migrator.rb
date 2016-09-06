@@ -1,5 +1,25 @@
 module Whiteprint
   module Migrator
+    class Cli
+      def initialize(input, output)
+        @cli = HighLine.new input, output
+      end
+
+      def ask(*args)
+        @cli.ask(*args)
+      end
+
+      def choose(*args, &block)
+        @cli.choose(*args, &block)
+      end
+
+      def say(*messages)
+        messages.each do |message|
+          @cli.say(message)
+        end
+      end
+    end
+
     class << self
       def eager_load!
         return unless Whiteprint.config.eager_load
@@ -19,43 +39,30 @@ module Whiteprint
         end
       end
 
-      def interactive(input: $stdin, output: $stdout, migrate_input: $stdin, migrate_output: $stdout)
-        # TODO: Clean up
-
-        eager_load!
-        cli = HighLine.new input, output
-
-        if number_of_changes == 0
-          cli.say('Whiteprint detected no changes')
-          return
-        end
-
-        cli.say "Whiteprint has detected <%= color('#{number_of_changes}', :bold, :white) %> changes to your models."
-        explanations.each do |explanation|
-          cli.say explanation
-        end
-
-        cli.choose do |menu|
-          menu.header = 'Migrations'
-          menu.prompt = 'How would you like to process these changes?'
-          menu.choice('In one migration')       { migrate_at_once(input: migrate_input, output: migrate_output) }
-          menu.choice('In separate migrations') { cli.say 'Bar' }
-        end
+      def no_changes?
+        number_of_changes == 0
       end
 
-      def migrate_at_once(input: $stdin, output: $stdout)
-        # TODO: Clean up
+      def interactive(input: $stdin, output: $stdout)
+        eager_load!
+        cli = Cli.new(input, output)
 
-        cli = HighLine.new input, output
-        name = cli.ask 'How would you like to name this migration?'
-        Whiteprint.changed_whiteprints
-                 .group_by(&:transformer)
-                 .map do |adapter, whiteprints|
-                   adapter.generate_migration(name, whiteprints.map(&:changes_tree))
-                 end
+        # return if there are no changes
+        cli.say('Whiteprint detected no changes') and return if no_changes?
 
-        ActiveRecord::Migration.verbose = true
-        ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths)
+        # list all changes
+        cli.say "Whiteprint has detected <%= color('#{number_of_changes}', :bold, :white) %> changes to your models.", *explanations
+
+        if Whiteprint.config.migration_strategy == :ask
+          cli.choose do |menu|
+            menu.header = 'Migrations'
+            menu.prompt = 'How would you like to process these changes?'
+            menu.choice('In one migration')       { Whiteprint.migrate cli, separately: false }
+            menu.choice('In separate migrations') { Whiteprint.migrate cli, separately: true }
+          end
+        else
+          Whiteprint.migrate cli, separately: (Whiteprint.config.migration_strategy == :separately)
+        end
       end
 
       def number_of_changes
