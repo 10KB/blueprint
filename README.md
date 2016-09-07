@@ -241,11 +241,207 @@ end
 
 ### Method as default value
 
+You can specify a symbol as the default value for an attribute for dynamic defaults.
+
+```ruby
+class Car < ActiveRecord::Base
+  include Whiteprint::Model
+
+  whiteprint do
+    references :user, default: :current_user
+  end
+
+  private
+
+  def current_user
+    User.current
+  end
+end
+```
+
 ### Accessor
+
+You can use the accessor type to add attr_accessors to your model
+
+```ruby
+class User < ActiveRecord::Base
+  include Whiteprint::Model
+
+  whiteprint do
+    text     :password_digest
+    accessor :password
+    accessor :password_confirmation
+  end
+end
+```
 
 ## Attributes
 
+The whiteprint instance of a model can be accessed using the whiteprint method: `Model.whiteprint`. The attributes of a whiteprint are available using the attributes method: `Model.whiteprint.attributes`.
+These attributes are an instance of `Whiteprint::Attributes` and have several helper methods available.
+
+### for_serializer
+
+The for_serializer helper lists all attributes that aren't private or associations.
+
+```ruby
+class Car < ActiveRecord::Base
+  include Whiteprint::Model
+
+  whiteprint do
+    string     :brand, default: 'Ford'
+    string     :name
+    decimal    :price, precision: 10, scale: 5, private: true
+    references :color
+  end
+end
+
+Car.whiteprint.attributes.for_serializer
+# [:id, :created_at, :updated_at, :brand, :name]
+
+# usage example
+class CarSerializer < ActiveModel::Serializer
+  attributes *Car.whiteprint.attributes.for_serializer
+end
+```
+
+### for_permitted
+
+The for_serializer helper lists all attributes that aren't private or readonly in a format suitable for Rails' strong paramters.
+
+```ruby
+class Car < ActiveRecord::Base
+  include Whiteprint::Model
+
+  whiteprint do
+    string     :brand,  default: 'Ford'
+    string     :name,   readonly: true
+    text       :specs,  array: true
+    decimal    :price,  precision: 10, scale: 5, private: true
+    references :color
+    habtm      :owners, class_name: 'User'
+  end
+end
+
+Car.whiteprint.attributes.for_permitted
+# [:id, :brand, {:specs=>[]}, :color_id, {:owner_ids=>[]}]
+
+# usage example
+def permitted_params
+  params.require(:car).permit(*Car.whiteprint.attributes.for_permitted)
+end
+```
+
+### for_meta
+
+The for_meta helper lists all meta info that is specified for attributes. The `meta_attribute_options` config determines which options should be listed by this helper.
+
+```ruby
+Whiteprint.config do |c|
+  c.meta_attribute_options = [:enum, :label]
+end
+
+class Car < ActiveRecord::Base
+  include Whiteprint::Model
+
+  whiteprint do
+    string     :brand,  default: 'Ford', enum: {"Ford"=>"Ford", "BMW"=>"BMW", "Audi"=>"Audi"}, label: 'Merk'
+    string     :name,   label: 'Naam'
+    text       :specs,  array: true
+    decimal    :price,  precision: 10, scale: 5, private: true
+    references :color
+    habtm      :owners, class_name: 'User'
+  end
+end
+
+Car.whiteprint.attributes.for_meta
+# {:brand=>{:enum=>{"Ford"=>"Ford", "BMW"=>"BMW", "Audi"=>"Audi"}, :label=>"Merk"}, :name=>{:label=>"Naam"}}
+
+# example usage
+render json: @car, meta: Car.whiteprint.attributes.for_meta
+```
+
+## Composability
+
+Whiteprints are inherited and can be composed.
+
+```ruby
+class Animal
+  include Whiteprint::Model
+
+  whiteprint do
+    text :name
+    text :description
+  end
+end
+
+module Mammal
+  extend ActiveSupport::Concern
+
+  included do
+    whiteprint do
+      integer :gestation_period
+    end
+  end
+end
+
+class Dog < Animal
+  include Mammal
+
+  whiteprint do
+    string :breed
+  end
+end
+
+class Cat < Animal
+  include Mammal
+
+  whiteprint do
+    boolean :domestic, default: true
+  end
+end
+
+Cat.whiteprint.attributes.to_a.map(&:to_h)
+# [{:name=>:name, :type=>:text}, {:name=>:description, :type=>:text}, {:name=>:gestation_period, :type=>:integer}, {:name=>:domestic, :type=>:boolean, :default=>true}]
+
+Dog.whiteprint.attributes.to_a.map(&:to_h)
+#[{:name=>:name, :type=>:text}, {:name=>:description, :type=>:text}, {:name=>:gestation_period, :type=>:integer}, {:name=>:breed, :type=>:string}]
+```
+
 ## Configuration
+
+```ruby
+Whiteprint.config do |c|
+  # which adapter to use if none is applicable
+  c.default_adapter             = :base
+
+  # Models have to be loaded before whiteprint:migrate runs. Set to true to let Whiteprint do this for you.
+  c.eager_load                  = false # default true for Rails projects
+
+  # Define  which path(s) contain whiteprint models
+  c.eager_load_paths            = []
+
+  # Define which attribute options are persisted
+  c.persisted_attribute_options = {
+    array: false,
+    limit: nil,
+    precision: nil,
+    scale: nil,
+    polymorphic: false,
+    null: true,
+    default: nil
+  }
+
+  # Define the attribute options for the for_meta gelper
+  c.meta_attribute_options      = [:enum]
+
+  # Define if changes should be run in a single or separately migrations. One of: :ask, :separately, :together
+  c.migration_strategy          = :ask
+
+  # Define if migrations should be automatically added to git
+  c.add_migration_to_git        = false
+end
+```
 
 ## Origin
 Whiteprint is extracted from an application framework we use internally. Right now, our framework is lacking tests and documentation, but we intend to open source more parts of our framework in the future.

@@ -36,7 +36,7 @@ module Whiteprint
     def for_meta(instance)
       ::Whiteprint.config.meta_attribute_options.map do |option|
         {option => send("meta_#{option}", instance)}
-      end.inject(&:merge).compact
+      end.inject(&:merge).select { |_, value| !value.nil? }
     end
 
     def for_persisted(**config)
@@ -55,6 +55,7 @@ module Whiteprint
                 enum
               end
 
+      return nil unless _enum
       return _enum if _enum.is_a?(Hash)
 
       _enum.map do |value|
@@ -62,7 +63,7 @@ module Whiteprint
       end.inject(&:merge)
     end
 
-    def method_missing(name)
+    def method_missing(name, *args)
       if name.to_s.starts_with?('meta_')
         self[name.to_s.remove(/^meta_/)]
       else
@@ -159,24 +160,28 @@ module Whiteprint
       persisted_scope
     end
 
-    def for_meta(instance)
+    def for_meta(instance = nil)
       where(::Whiteprint.config.meta_attribute_options).to_h.map do |key, attribute|
         {key => attribute.for_meta(instance)}
       end.inject(&:merge)
     end
 
     def for_serializer
-      self.not(type: :references).not(private: true).keys
+      # TODO: move specifics to activerecord adapater
+
+      self.not(type: :references).not(type: :has_and_belongs_to_many).not(private: true).keys
     end
 
     def for_permitted
-      self.not(readonly: true).not(name: [:updated_at, :created_at]).to_h.map do |name, attribute|
+      # TODO: move specifics to activerecord adapater
+
+      self.not(readonly: true).not(private: true).not(name: [:updated_at, :created_at]).to_h.map do |name, attribute|
         if attribute.array
           {name => []}
         elsif attribute.type == :has_and_belongs_to_many
-          {"#{name.to_s.singularize}_ids" => []}
+          {:"#{name.to_s.singularize}_ids" => []}
         elsif attribute.type == :references
-          "#{attribute.name}_id"
+          :"#{attribute.name}_id"
         else
           name
         end
