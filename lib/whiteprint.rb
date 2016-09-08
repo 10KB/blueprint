@@ -44,6 +44,7 @@ module Whiteprint
   require 'whiteprint/railtie' if defined?(Rails)
 
   require 'whiteprint/adapters/active_record'
+  require 'whiteprint/adapters/active_record/has_and_belongs_to_many'
   require 'whiteprint/adapters/test'
 
   ADAPTERS = {
@@ -116,5 +117,6 @@ module Whiteprint
     def register_plugin(name, constant)
       @@plugins[name] = constant
     end
+    require 'whiteprint/plugins'
   end
 end

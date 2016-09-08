@@ -2,27 +2,16 @@ module Whiteprint
   module Adapters
     class ActiveRecord < ::Whiteprint::Base
       require 'whiteprint/adapters/active_record/migration'
-      require 'whiteprint/adapters/active_record/has_and_belongs_to_many'
 
-      BELONGS_TO_OPTIONS = [:class_name, :anonymous_class, :foreign_key, :validate, :autosave,
-                            :dependent, :primary_key, :inverse_of, :required, :foreign_type,
-                            :polymorphic, :touch, :counter_cache, :cached]
+      plugin :accessor
+      plugin :has_and_belongs_to_many
+      plugin :inflector
+      plugin :references
 
       class << self
         def applicable?(model)
           return false unless defined?(::ActiveRecord)
           model < ::ActiveRecord::Base
-        end
-
-        def underscore(name)
-          name = name.tr(' ', '_')
-          name.gsub(/([a-z])([A-Z])/) { "#{Regexp.last_match[1]}_#{Regexp.last_match[2].downcase}" }.downcase
-        end
-
-        def camelize(name)
-          name = underscore(name)
-          name = name.gsub(/^([a-z])/) { Regexp.last_match[1].upcase }
-          name.gsub(/_([a-zA-Z])/) { Regexp.last_match[1].upcase }
         end
 
         def generate_migration(name, trees)
@@ -57,99 +46,40 @@ module Whiteprint
 
       def initialize(model, id: true, timestamps: true, auto_belongs_to: true, **_options)
         super(model, id: true, timestamps: true, **_options)
-
-        @has_id          = id
-        @has_timestamps  = timestamps
-        @auto_belongs_to = auto_belongs_to
-        @attributes.add(name: :id, type: :integer, null: false) if id
-        @attributes.add(name: :created_at, type: :datetime)     if timestamps
-        @attributes.add(name: :updated_at, type: :datetime)     if timestamps
+        @has_id, @has_timestamps, @auto_belongs_to = id, timestamps, auto_belongs_to
+        set_default_attributes
       end
 
-      def accessor(name, options)
-        @attributes.add(name: name, type: :accessor, virtual: true, **options)
-        model.send :attr_accessor, name
+      def connection
+        model.try(:connection) || ::ActiveRecord::Base.connection
       end
 
       def changes_tree
         changes_tree = super
 
-        unless changes_tree[:table_exists]
-          changes_tree[:has_id] = @has_id
-          changes_tree[:attributes].reject! { |attribute| attribute[:name] == :id }
-        end
-
-        added_created_at = changes_tree[:attributes].select { |attribute| attribute[:name] == :created_at && attribute[:kind] == :added }
-        added_updated_at = changes_tree[:attributes].select { |attribute| attribute[:name] == :updated_at && attribute[:kind] == :added }
-
-        if added_created_at.size == 1 && added_updated_at.size == 1
-          changes_tree[:attributes] -= [*added_created_at, *added_updated_at]
-          changes_tree[:attributes] += [{ type: :timestamps, kind: :added }]
-        end
-
-        changes_tree[:attributes].each do |attribute|
-          persisted_attribute = persisted_attributes[attribute[:name]]
-          if persisted_attribute && attribute[:options][:default].nil? && persisted_attribute[:options][:default]
-            changes_tree[:attributes] += [{ name: attribute[:name], kind: :removed_default }]
-          end
-        end
+        transform_id_to_option!         changes_tree
+        transform_timestamps_to_option! changes_tree
+        transform_removed_default!      changes_tree
 
         changes_tree
       end
-
-      def has_and_belongs_to_many(name, **options)
-        super(name, **options.merge(virtual: true))
-        model.send(:has_and_belongs_to_many, name.to_sym, **options) unless model.reflect_on_association(name)
-
-        association = model.reflect_on_association(name)
-
-        Class.new do
-          include Whiteprint::Model
-
-          @association = association
-          @join_table  = association.join_table
-
-          whiteprint(adapter: :has_and_belongs_to_many, id: false, timestamps: false) do
-            integer association.foreign_key
-            integer association.association_foreign_key
-          end
-
-          class << self
-            def name
-              "#{@join_table}_habtm_model"
-            end
-
-            def table_name
-              @join_table
-            end
-
-            def table_exists?
-              ::ActiveRecord::Base.connection.table_exists?(table_name)
-            end
-          end
-        end
-      end
-      alias_method :habtm, :has_and_belongs_to_many
 
       def migration(name)
         self.class.migration(name, [changes_tree])
       end
 
       def options_from_column(column)
-        [:name, :type, *Whiteprint.config.persisted_attribute_options.keys].map do |option|
-          association_by_foreign_key = find_association_by_foreign_key(column)
-          overridden_name            = association_by_foreign_key && association_by_foreign_key.name || column.name
-          current_attribute          = attributes[overridden_name]
+        persisted_attribute_options.map do |option|
+          association, overridden_name, current_attribute = inspect_column(column)
+          option_from_association = association && option_from_association(association, name: overridden_name, option: option)
 
-          next {name: overridden_name}               if option == :name        && association_by_foreign_key
-          next {type: :references}                   if option == :type        && association_by_foreign_key
-          next {polymorphic: true}                   if option == :polymorphic && association_by_foreign_key && model.column_names.include?(association_by_foreign_key.foreign_type)
-          next                                       unless column.respond_to?(option)
+          next option_from_association if option_from_association
+          next unless column.respond_to?(option)
           next {default: current_attribute.default}  if option == :default && current_attribute && current_attribute.default.is_a?(Symbol)
 
-          value = column.send(option)
-          value = column.type_cast_from_database(value) if option == :default
+          value = option_value_from_column(column, option)
           next if value == Whiteprint.config.persisted_attribute_options[option]
+
           { option => value }
         end.compact.inject(&:merge)
       end
@@ -157,37 +87,38 @@ module Whiteprint
       def persisted_attributes
         attributes = Whiteprint::Attributes.new
         return attributes unless table_exists?
+
         model.columns.each do |column|
           next if find_association_by_foreign_type(column)
-
           attributes.add options_from_column(column)
         end
+
         attributes.for_persisted
       end
 
-      def references(name, **options)
-        super
-        return unless @auto_belongs_to
-        model.send :belongs_to, name.to_sym, **options.slice(*BELONGS_TO_OPTIONS)
+      def persisted_attribute_options
+        [:name, :type, *Whiteprint.config.persisted_attribute_options.keys]
       end
 
       def table_exists?
-        model.connection.schema_cache.clear!
-        model.connection.table_exists?(table_name)
+        connection.schema_cache.clear!
+        connection.table_exists?(table_name)
       end
 
       def method_missing(type, name, **options)
         super
-
-        if options[:default] && options[:default].is_a?(Symbol)
-          model.send :after_initialize do
-            next if self.send(name) || !new_record?
-            self.send "#{name}=", send(options[:default])
-          end
-        end
+        set_dynamic_default(name, options)
       end
 
       private
+
+      def inspect_column(column)
+        association       = find_association_by_foreign_key(column)
+        overridden_name   = association && association.name || column.name
+        current_attribute = attributes[overridden_name]
+
+        [association, overridden_name, current_attribute]
+      end
 
       def find_association_by_foreign_key(column)
         model.reflect_on_all_associations.find do |association|
@@ -199,6 +130,67 @@ module Whiteprint
         model.reflect_on_all_associations.find do |association|
           association.polymorphic? && association.foreign_type.to_s == column.name.to_s
         end
+      end
+
+      def option_from_association(association, name:, option:)
+        if    option == :name
+          {name: name}
+        elsif option == :type
+          {type: :references}
+        elsif option == :polymorphic && model.column_names.include?(association.foreign_type)
+          {polymorphic: true}
+        end
+      end
+
+      def option_value_from_column(column, option)
+        value = column.send(option)
+        option == :default ? column.type_cast_from_database(value) : value
+      end
+
+      def set_default_attributes
+        @attributes.add(name: :id, type: :integer, null: false) if @has_id
+        @attributes.add(name: :created_at, type: :datetime)     if @has_timestamps
+        @attributes.add(name: :updated_at, type: :datetime)     if @has_timestamps
+      end
+
+      def set_dynamic_default(name, options)
+        return unless options[:default] && options[:default].is_a?(Symbol)
+        model.send :after_initialize do
+          next if self.send(name) || !new_record?
+          self.send "#{name}=", send(options[:default])
+        end
+      end
+
+      def transform_id_to_option!(changes_tree)
+        return if changes_tree[:table_exists]
+        changes_tree[:has_id] = @has_id
+        changes_tree[:attributes].reject! do |attribute|
+          attribute[:name] == :id
+        end
+      end
+
+      def transform_removed_default!(changes_tree)
+        changes_tree[:attributes].each do |attribute|
+          persisted_attribute = persisted_attributes[attribute[:name]]
+          if persisted_attribute && attribute[:options][:default].nil? && persisted_attribute[:options][:default]
+            changes_tree[:attributes] += [{ name: attribute[:name], kind: :removed_default }]
+          end
+        end
+      end
+
+      def transform_timestamps_to_option!(changes_tree)
+        added_created_at = changes_tree[:attributes].find do |attribute|
+          attribute[:name] == :created_at && attribute[:kind] == :added
+        end
+
+        added_updated_at = changes_tree[:attributes].find do |attribute|
+          attribute[:name] == :updated_at && attribute[:kind] == :added
+        end
+
+        return unless added_created_at && added_updated_at
+
+        changes_tree[:attributes] -= [added_created_at, added_updated_at]
+        changes_tree[:attributes] += [{ type: :timestamps, kind: :added }]
       end
     end
   end

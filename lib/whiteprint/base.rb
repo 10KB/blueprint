@@ -7,15 +7,23 @@ module Whiteprint
         true
       end
 
+      def plugin(name)
+        (@plugins ||= []) << name
+      end
+
+      def plugins
+        @plugins || []
+      end
+
       def load_plugins
-        Whiteprint.config.plugins.each do |plugin|
+        plugins.each do |plugin|
           include Whiteprint.plugins[plugin]
         end
       end
     end
 
     def initialize(model, **_options)
-      singleton_class.send :load_plugins
+      self.class.send :load_plugins
 
       self.model                 = model
       self.options               = _options
@@ -33,8 +41,8 @@ module Whiteprint
       table = Terminal::Table.new(Explanation.apply(self, index, width: width))
       table.render
       table
-    rescue => e
-      explanation(index, width + 10)
+    # rescue => e
+    #   explanation(index, width + 10)
     end
 
     def changes_tree
